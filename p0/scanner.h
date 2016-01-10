@@ -26,9 +26,12 @@ typedef enum {
     T_Int, T_Float, T_Bool, T_String, T_Class, T_Null, T_Dims,
     T_LessEqual, T_GreaterEqual, T_Equal, T_NotEqual, T_And, T_Or,
     T_While, T_For, T_If, T_Else, T_Return, T_Break,
-    T_Extends, T_This, T_Implements, T_Interface, T_New, T_NewArray,
     T_Identifier, T_StringConstant, T_IntConstant, T_FloatConstant,
-    T_BoolConstant, T_Print, T_ReadInteger, T_ReadLine,
+    T_BoolConstant, T_Const, T_Uniform, T_Layout, T_Continue, 
+    T_Do, T_Switch, T_Case, T_Default, T_In, T_Out, T_InOut,
+    T_Mat2, T_Mat3, T_Mat4, T_Vec2, T_Vec3, T_Vec4, T_IVec2, T_IVec3,
+    T_IVec4, T_BVec2, T_BVec3, T_BVec4, T_UInt, T_UVec2, T_UVec3, T_UVec4,
+    T_Struct, T_Print, T_ReadInteger, T_ReadLine,
     T_NumTokenTypes
 } TokenType;
 
@@ -41,9 +44,13 @@ static const char *gTokenNames[T_NumTokenTypes] = {
   "T_Void", "T_Int", "T_Float", "T_Bool", "T_String", "T_Class", "T_Null", "T_Dims",
   "T_LessEqual", "T_GreaterEqual", "T_Equal", "T_NotEqual",
   "T_And", "T_Or", "T_While", "T_For", "T_If", "T_Else", "T_Return",
-  "T_Break", "T_Extends", "T_This", "T_Implements", "T_Interface",
-  "T_New", "T_NewArray","T_Identifier", "T_StringConstant",
-  "T_IntConstant", "T_FloatConstant", "T_BoolConstant", "T_Print",
+  "T_Break", "T_Identifier", "T_StringConstant",
+  "T_IntConstant", "T_FloatConstant", "T_BoolConstant", 
+  "T_Const", "T_Uniform", "T_Layout", "T_Continue", 
+  "T_Do", "T_Switch", "T_Case", "T_Default", "T_In", "T_Out", "T_InOut",
+  "T_Mat2", "T_Mat3", "T_Mat4", "T_Vec2", "T_Vec3", "T_Vec4", "T_IVec2", 
+  "T_IVec3", "T_IVec4", "T_BVec2", "T_BVec3", "T_BVec4", "T_UInt", 
+  "T_UVec2", "T_UVec3", "T_UVec4", "T_Struct","T_Print",
   "T_ReadInteger", "T_ReadLine"
 };
 
