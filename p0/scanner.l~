@@ -16,9 +16,6 @@
 #include "utility.h" // for PrintDebug()
 #include "errors.h"
 
-#define MAX_IDENT_LEN 1023
-#define IDENT_TRUNC_LEN 31
-
 /* Global variable: yylval
  * -----------------------
  * This global variable is how we get attribute information about the token
@@ -35,6 +32,8 @@ YYSTYPE yylval;  // manually declared for pp1, later Yacc provides
  * just scanned to the client. (Operates similarly to yylval above)
  */
 struct yyltype yylloc; // manually dclared for pp1, later Yacc provides
+
+int line = 1, col = 1;
 
 /* Macro: YY_USER_ACTION 
  * ---------------------
@@ -58,8 +57,7 @@ static void DoBeforeEachAction();
   * entries in the Rules section later. 
   */
 
-digit    [0-9]
-nondigit [_a-zA-Z]
+ident    [_[:alpha:]][_[:alnum:]]*
 
 
 %%             /* BEGIN RULES SECTION */
@@ -105,10 +103,17 @@ nondigit [_a-zA-Z]
 "uvec4"    { return T_UVec4; }
 "struct"   { return T_Struct; }
 
+" "        {}
+\t         { col += 7; }  
+\n         { ++line; col = 1; }
 
-{nondigit}({nondigit}|{digit})*
-{
-  if (yyleng > MAX_IDENT_LEN) {}
+{ident} {
+  if (strlen(yytext) > MaxIdentLen) {
+		ReportError::LongIdentifier(&yylloc, yytext);
+		yytext[MaxIdentLen] = '\0';
+	}
+
+	strcpy(yylval.identifier, yytext);
 }
     
 
@@ -147,4 +152,9 @@ void InitScanner()
  */
 static void DoBeforeEachAction()
 {
+	yylloc.first_line = line;
+  yylloc.first_column = col;
+	yylloc.last_line = line;
+  yylloc.last_column = yylloc.first_column + strlen(yytext);
+	col = yylloc.last_column;
 }
