@@ -16,6 +16,8 @@
 #include "utility.h" // for PrintDebug()
 #include "errors.h"
 
+#define GLSL_MAX_IDEN_LEN 1023
+
 /* Global variable: yylval
  * -----------------------
  * This global variable is how we get attribute information about the token
@@ -33,7 +35,6 @@ YYSTYPE yylval;  // manually declared for pp1, later Yacc provides
  */
 struct yyltype yylloc; // manually dclared for pp1, later Yacc provides
 
-int line = 1, col = 1;
 
 /* Macro: YY_USER_ACTION 
  * ---------------------
@@ -57,8 +58,11 @@ static void DoBeforeEachAction();
   * entries in the Rules section later. 
   */
 
-ident    [_[:alpha:]][_[:alnum:]]*
+ident             [_[:alpha:]][_[:alnum:]]*
+unrecognized_char [^[:alnum:]\+\-\*\/\%\<\>\=\!\&\|\!\;\,\.\[\]\(\)\{\}\t\n ]
 
+
+%x COMMENT 
 
 %%             /* BEGIN RULES SECTION */
  /* All patterns and actions should be placed between the start and stop
@@ -103,21 +107,30 @@ ident    [_[:alpha:]][_[:alnum:]]*
 "uvec4"    { return T_UVec4; }
 "struct"   { return T_Struct; }
 
+
 " "        {}
-\t         { col += 7; }  
-\n         { ++line; col = 1; }
+\t         { yylloc.last_column += 7; }  
+<*>\n      { ++yylloc.first_line; yylloc.last_column = 0; }
 
 {ident} {
-  if (strlen(yytext) > MaxIdentLen) {
+	if (yyleng > GLSL_MAX_IDEN_LEN) {
 		ReportError::LongIdentifier(&yylloc, yytext);
-		yytext[MaxIdentLen] = '\0';
-	}
+	}	
 
-	strcpy(yylval.identifier, yytext);
+	memset(&yylval, 0, sizeof(yylval));
+	strncpy(yylval.identifier, yytext, MaxIdentLen);
+	
+	return T_Identifier;
 }
+
+{unrecognized_char} { ReportError::UnrecogChar(&yylloc, yytext[0]); }
+ 
+"/*"              { BEGIN(COMMENT); }
+<COMMENT>.        {}
+<COMMENT><<EOF>>  { ReportError::UntermComment(); }
+<COMMENT>"*/"     { BEGIN(INITIAL); }
+
     
-
-
 %%
 /* The closing %% above marks the end of the Rules section and the beginning
  * of the User Subroutines section. All text from here to the end of the
@@ -142,6 +155,8 @@ void InitScanner()
 {
     PrintDebug("lex", "Initializing scanner");
     yy_flex_debug = false;
+		yylloc.first_line = 1;
+    yylloc.last_column = 0;
 }
 
 
@@ -152,9 +167,6 @@ void InitScanner()
  */
 static void DoBeforeEachAction()
 {
-	yylloc.first_line = line;
-  yylloc.first_column = col;
-	yylloc.last_line = line;
-  yylloc.last_column = yylloc.first_column + strlen(yytext);
-	col = yylloc.last_column;
+  yylloc.first_column = yylloc.last_column + 1;
+  yylloc.last_column = yylloc.first_column + yyleng - 1;
 }
