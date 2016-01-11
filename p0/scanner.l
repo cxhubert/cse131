@@ -59,9 +59,9 @@ static void DoBeforeEachAction();
   */
 
 ident             [_[:alpha:]][_[:alnum:]]*
-unrecognized_char [^[:alnum:]\+\-\*\/\%\<\>\=\!\&\|\!\;\,\.\[\]\(\)\{\}\t\n ]
-operator_char     [\+\-
-
+single_char_token [\+\-\*\/\%\<\>\=\!\&\|\!\;\,\.\[\]\(\)\{\}]
+whitespace        [\t\n ]
+unrecognized_char [^[:alnum:]{single_char_token}{whitespace}]
 
 %x COMMENT 
 
@@ -83,6 +83,7 @@ operator_char     [\+\-
 "default"  { return T_Default; }
 "if"       { return T_If; }
 "else"     { return T_Else; }
+"return"   { return T_Return; }
 "in"       { return T_In; }
 "out"      { return T_Out; }
 "inout"    { return T_InOut; }
@@ -108,6 +109,26 @@ operator_char     [\+\-
 "uvec4"    { return T_UVec4; }
 "struct"   { return T_Struct; }
 
+"true" {
+	yylval.boolConstant = 1;
+  return T_BoolConstant;
+}
+
+"false" {
+  yylval.boolConstant = 0;
+  return T_BoolConstant;
+}
+						
+"<=" 	       { return T_LessEqual; }
+">="         { return T_GreaterEqual; }
+"=="         { return T_Equal; }
+"!="         { return T_NotEqual; }
+"&&"         { return T_And; }
+"||"         { return T_Or; }
+"[]"         { return T_Dims; }
+"NULL"       { return T_Null;}
+"++"         { return T_Inc; }
+"--"         { return T_Dec; }
 
 " "        {}
 \t         { yylloc.last_column += 7; }  
@@ -124,14 +145,16 @@ operator_char     [\+\-
 	return T_Identifier;
 }
 
+{single_char_token} { return yytext[0]; }
+
 {unrecognized_char} { ReportError::UnrecogChar(&yylloc, yytext[0]); }
- 
+
+
 "/*"              { BEGIN(COMMENT); }
 <COMMENT>.        {}
 <COMMENT><<EOF>>  { ReportError::UntermComment(); }
 <COMMENT>"*/"     { BEGIN(INITIAL); }
 
-    
 %%
 /* The closing %% above marks the end of the Rules section and the beginning
  * of the User Subroutines section. All text from here to the end of the
