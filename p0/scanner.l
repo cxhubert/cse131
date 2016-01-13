@@ -59,11 +59,11 @@ static void DoBeforeEachAction();
   */
 
 ident             [_[:alpha:]][_[:alnum:]]*
-single_char_token [\+\-\*\/\%\<\>\=\!\&\|\!\;\,\.\[\]\(\)\{\}]
-whitespace        [\t\n ]
+single_char_token [\+\-\*\/\%\<\>\=\!\&\|\!\;\,\.\[\]\(\)\{\}\^\~\:\?]
+whitespace        [\r\t\n ]
 unrecognized_char [^[:alnum:]{single_char_token}{whitespace}]
-int_const         [+-]?[[:digit:]]+
-float_const       [+-]?(((([[:digit:]]+\.[[:digit:]]*)|(\.[[:digit:]]+))f?)|([[:digit:]]+f))
+int_const         [[:digit:]]+
+float_const       (((([[:digit:]]+\.[[:digit:]]*)|(\.[[:digit:]]+))f?)|([[:digit:]]+f))
 invalid_ident     ({int_const}|{float_const}){ident}
 single_line_com   "//".*\n
 
