@@ -36,7 +36,7 @@ YYSTYPE yylval;  // manually declared for pp1, later Yacc provides
 struct yyltype yylloc; // manually dclared for pp1, later Yacc provides
 
 
-/* Macro: YY_USER_ACTION 
+/* Macro: YY_USER_ACTION
  * ---------------------
  * This flex built-in macro can be defined to provide an action which is
  * always executed prior to any matched rule's action. Basically, it is
@@ -46,7 +46,7 @@ struct yyltype yylloc; // manually dclared for pp1, later Yacc provides
  * be called once for each pattern scanned from the file, before
  * executing its action.
  */
-static void DoBeforeEachAction(); 
+static void DoBeforeEachAction();
 #define YY_USER_ACTION DoBeforeEachAction();
 
 %}
@@ -55,20 +55,25 @@ static void DoBeforeEachAction();
   * input file. Here is where you set options for the scanner, define lex
   * states, and can set up definitions to give names to regular expressions
   * as a simple substitution mechanism that allows for more readable
-  * entries in the Rules section later. 
+  * entries in the Rules section later.
   */
 
 ident             [_[:alpha:]][_[:alnum:]]*
 single_char_token [\+\-\*\/\%\<\>\=\!\&\|\!\;\,\.\[\]\(\)\{\}]
 whitespace        [\t\n ]
 unrecognized_char [^[:alnum:]{single_char_token}{whitespace}]
+INTEGERCONST      [+-]?[[:digit:]]+
+FLOATCONS				[+-]?(([1-9][0-9]*[f]?\.?[0-9]*)|(\.[0-9]+))([Ee][+-]?[0-9]+)?[f]?
+FLOATCONST        [+-]?(((([[:digit:]]+\.[[:digit:]]*)|(\.[[:digit:]]+))f?)|([[:digit:]]+f))
 
-%x COMMENT 
+/*9int  -+1234  [+-]?([0-9]*[f]?\.?([0-9]+)?([eE][-+]?[0-9]+)?[f]?) */
+
+%x COMMENT
 
 %%             /* BEGIN RULES SECTION */
  /* All patterns and actions should be placed between the start and stop
-  * %% markers which delimit the Rules section. 
-  */ 
+  * %% markers which delimit the Rules section.
+  */
 
 "const"    { return T_Const; }
 "uniform"  { return T_Uniform; }
@@ -118,7 +123,12 @@ unrecognized_char [^[:alnum:]{single_char_token}{whitespace}]
   yylval.boolConstant = 0;
   return T_BoolConstant;
 }
-						
+
+{INTEGERCONST}    { yylval.integerConstant = strtol(yytext, NULL, 10);
+               return T_IntConstant; }
+{FLOATCONST}    { yylval.floatConstant = atof(yytext);
+              return T_FloatConstant; }
+
 "<=" 	       { return T_LessEqual; }
 ">="         { return T_GreaterEqual; }
 "=="         { return T_Equal; }
@@ -131,17 +141,17 @@ unrecognized_char [^[:alnum:]{single_char_token}{whitespace}]
 "--"         { return T_Dec; }
 
 " "        {}
-\t         { yylloc.last_column += 7; }  
+<*>\t         { yylloc.last_column += 7; }
 <*>\n      { ++yylloc.first_line; yylloc.last_column = 0; }
 
 {ident} {
 	if (yyleng > GLSL_MAX_IDEN_LEN) {
 		ReportError::LongIdentifier(&yylloc, yytext);
-	}	
+	}
 
 	memset(&yylval, 0, sizeof(yylval));
 	strncpy(yylval.identifier, yytext, MaxIdentLen);
-	
+
 	return T_Identifier;
 }
 

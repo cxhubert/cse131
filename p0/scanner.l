@@ -63,7 +63,7 @@ single_char_token [\+\-\*\/\%\<\>\=\!\&\|\!\;\,\.\[\]\(\)\{\}]
 whitespace        [\t\n ]
 unrecognized_char [^[:alnum:]{single_char_token}{whitespace}]
 INTEGERCONST      [+-]?[[:digit:]]+
-FLOATCONST				[+-]?(([1-9][0-9]*[f]?\.?[0-9]*)|(\.[0-9]+))([Ee][+-]?[0-9]+)?[f]?
+FLOATCONST        [+-]?(((([[:digit:]]+\.[[:digit:]]*)|(\.[[:digit:]]+))f?)|([[:digit:]]+f))
 
 /*9int  -+1234  [+-]?([0-9]*[f]?\.?([0-9]+)?([eE][-+]?[0-9]+)?[f]?) */
 
