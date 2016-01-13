@@ -62,10 +62,11 @@ ident             [_[:alpha:]][_[:alnum:]]*
 single_char_token [\+\-\*\/\%\<\>\=\!\&\|\!\;\,\.\[\]\(\)\{\}]
 whitespace        [\t\n ]
 unrecognized_char [^[:alnum:]{single_char_token}{whitespace}]
-INTEGERCONST      [+-]?[[:digit:]]+
-FLOATCONST        [+-]?(((([[:digit:]]+\.[[:digit:]]*)|(\.[[:digit:]]+))f?)|([[:digit:]]+f))
+int_const         [+-]?[[:digit:]]+
+float_const       [+-]?(((([[:digit:]]+\.[[:digit:]]*)|(\.[[:digit:]]+))f?)|([[:digit:]]+f))
+invalid_ident     ({int_const}|{float_const}){ident}
+single_line_com   "//".*\n
 
-/*9int  -+1234  [+-]?([0-9]*[f]?\.?([0-9]+)?([eE][-+]?[0-9]+)?[f]?) */
 
 %x COMMENT
 
@@ -123,10 +124,10 @@ FLOATCONST        [+-]?(((([[:digit:]]+\.[[:digit:]]*)|(\.[[:digit:]]+))f?)|([[:
   return T_BoolConstant;
 }
 
-{INTEGERCONST}    { yylval.integerConstant = strtol(yytext, NULL, 10);
-               return T_IntConstant; }
-{FLOATCONST}    { yylval.floatConstant = atof(yytext);
-              return T_FloatConstant; }
+{int_const}    { yylval.integerConstant = strtol(yytext, NULL, 10);
+                 return T_IntConstant; }
+{float_const}  { yylval.floatConstant = atof(yytext);
+                 return T_FloatConstant; }
 
 "<=" 	       { return T_LessEqual; }
 ">="         { return T_GreaterEqual; }
@@ -140,24 +141,27 @@ FLOATCONST        [+-]?(((([[:digit:]]+\.[[:digit:]]*)|(\.[[:digit:]]+))f?)|([[:
 "--"         { return T_Dec; }
 
 " "        {}
-<*>\t         { yylloc.last_column += 7; }
+<*>\t      { yylloc.last_column += 7; }
 <*>\n      { ++yylloc.first_line; yylloc.last_column = 0; }
 
 {ident} {
 	if (yyleng > GLSL_MAX_IDEN_LEN) {
 		ReportError::LongIdentifier(&yylloc, yytext);
+	} else {
+		memset(&yylval, 0, sizeof(yylval));
+		strncpy(yylval.identifier, yytext, MaxIdentLen);
+
+		return T_Identifier;
 	}
-
-	memset(&yylval, 0, sizeof(yylval));
-	strncpy(yylval.identifier, yytext, MaxIdentLen);
-
-	return T_Identifier;
 }
+
+{invalid_ident}     {}
 
 {single_char_token} { return yytext[0]; }
 
 {unrecognized_char} { ReportError::UnrecogChar(&yylloc, yytext[0]); }
 
+{single_line_com}   { ++yylloc.first_line; yylloc.last_column = 0; }
 
 "/*"              { BEGIN(COMMENT); }
 <COMMENT>.        {}

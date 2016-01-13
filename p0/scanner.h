@@ -46,9 +46,9 @@ static const char *gTokenNames[T_NumTokenTypes] = {
   "T_FloatConstant", "T_StringConstant", "T_BoolConstant", 
   "T_Const", "T_Uniform", "T_Layout", 
   "T_Continue", "T_Do", "T_Switch", "T_Case", "T_Default", "T_In", 
-  "T_Out", "T_InOut", "T_Mat2", "T_Mat3", "T_Mat4", "T_Vec2", "T_Vec3", 
-  "T_Vec4", "T_IVec2", "T_IVec3", "T_IVec4", "T_BVec2", "T_BVec3", 
-  "T_BVec4", "T_UInt", "T_UVec2", "T_UVec3", "T_UVec4", "T_Struct"
+  "T_Out", "T_Inout", "T_Mat2", "T_Mat3", "T_Mat4", "T_Vec2", "T_Vec3", 
+  "T_Vec4", "T_Ivec2", "T_Ivec3", "T_Ivec4", "T_Bvec2", "T_Bvec3", 
+  "T_Bvec4", "T_Uint", "T_Uvec2", "T_Uvec3", "T_Uvec4", "T_Struct"
 };
 
  
