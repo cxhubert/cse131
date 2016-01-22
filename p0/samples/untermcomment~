@@ -1,0 +1,19 @@
+int main(int argc, float args[]) {
+  uvec2 foo = { 6.0, 7.0 };
+  
+  "string literal";
+
+  // single line comment
+
+  more code = 5.6f
+  /* here, we have a comment that extends
+     over multiple lines.  Let's see if
+     the line numbers are correct */
+
+  float morecode = .7481234f, bar = -6.7
+
+  /* another comment that doesn't terminate
+     int x = 6;
+			
+		 return x;
+}

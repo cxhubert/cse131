@@ -58,13 +58,11 @@ static void DoBeforeEachAction();
   * entries in the Rules section later.
   */
 
+dig               [[:digit:]]
 ident             [_[:alpha:]][_[:alnum:]]*
 single_char_token [\+\-\*\/\%\<\>\=\!\&\|\!\;\,\.\[\]\(\)\{\}\^\~\:\?]
-whitespace        [\r\t\n ]
-unrecognized_char [^[:alnum:]{single_char_token}{whitespace}]
-int_const         [[:digit:]]+
-float_const       (((([[:digit:]]+\.[[:digit:]]*)|(\.[[:digit:]]+))f?)|([[:digit:]]+f))
-invalid_ident     ({int_const}|{float_const}){ident}
+int_const         {dig}+
+float_const       (((({dig}+\.{dig}*)|(\.{dig}+))f?)|({dig}+f))
 single_line_com   "//".*\n
 
 
@@ -74,6 +72,10 @@ single_line_com   "//".*\n
  /* All patterns and actions should be placed between the start and stop
   * %% markers which delimit the Rules section.
   */
+
+<*>" "     {}
+<*>\t      { yylloc.last_column += 7; }
+<*>\n      { ++yylloc.first_line; yylloc.last_column = 0; }
 
 "const"    { return T_Const; }
 "uniform"  { return T_Uniform; }
@@ -113,6 +115,7 @@ single_line_com   "//".*\n
 "uvec3"    { return T_UVec3; }
 "uvec4"    { return T_UVec4; }
 "struct"   { return T_Struct; }
+"NULL"     { return T_Null;}
 
 "true" {
 	yylval.boolConstant = 1;
@@ -126,8 +129,11 @@ single_line_com   "//".*\n
 
 {int_const}    { yylval.integerConstant = strtol(yytext, NULL, 10);
                  return T_IntConstant; }
+
 {float_const}  { yylval.floatConstant = atof(yytext);
                  return T_FloatConstant; }
+
+{single_char_token} { return yytext[0]; }
 
 "<=" 	       { return T_LessEqual; }
 ">="         { return T_GreaterEqual; }
@@ -136,13 +142,8 @@ single_line_com   "//".*\n
 "&&"         { return T_And; }
 "||"         { return T_Or; }
 "[]"         { return T_Dims; }
-"NULL"       { return T_Null;}
 "++"         { return T_Inc; }
 "--"         { return T_Dec; }
-
-" "        {}
-<*>\t      { yylloc.last_column += 7; }
-<*>\n      { ++yylloc.first_line; yylloc.last_column = 0; }
 
 {ident} {
 	if (yyleng > GLSL_MAX_IDEN_LEN) {
@@ -155,18 +156,14 @@ single_line_com   "//".*\n
 	}
 }
 
-{invalid_ident}     {}
-
-{single_char_token} { return yytext[0]; }
-
-{unrecognized_char} { ReportError::UnrecogChar(&yylloc, yytext[0]); }
-
-{single_line_com}   { ++yylloc.first_line; yylloc.last_column = 0; }
+{single_line_com} { ++yylloc.first_line; yylloc.last_column = 0; }
 
 "/*"              { BEGIN(COMMENT); }
 <COMMENT>.        {}
-<COMMENT><<EOF>>  { ReportError::UntermComment(); }
+<COMMENT><<EOF>>  { BEGIN(INITIAL); ReportError::UntermComment(); }
 <COMMENT>"*/"     { BEGIN(INITIAL); }
+
+. { ReportError::UnrecogChar(&yylloc, yytext[0]); }
 
 %%
 /* The closing %% above marks the end of the Rules section and the beginning
