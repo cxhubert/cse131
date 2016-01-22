@@ -41,7 +41,7 @@ static void DoBeforeEachAction();
 
 /* Definitions
  * -----------
- * To make our rules more readable, we establish some definitions here.
+ *  To make our rules more readable, we establish some definitions here.
  */
 DIGIT             ([0-9])
 HEX_DIGIT         ([0-9a-fA-F])

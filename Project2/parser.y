@@ -193,7 +193,6 @@ void yyerror(const char *msg); // standard error-handling routine
  */
 
 
-/*
 Program   :    DeclList            { 
                                       @1; 
                                       Program *program = new Program($1);
@@ -210,7 +209,7 @@ DeclList  :    DeclList Decl        { ($$=$1)->Append($2); }
 Decl      :    T_Void               { $$ = new VarDecl(); }
 					|    Type Identifier      { $$ = new VarDecl($2, $1); }
           ;
-*/
+
 %%
 
 /* The closing %% above marks the end of the Rules section and the beginning
