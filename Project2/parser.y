@@ -48,7 +48,9 @@ void yyerror(const char *msg); // standard error-handling routine
 	Identifier *ident;
 	Error *error;
 	Decl *decl;
+    List<Decl*> *declList;
 	VarDecl *varDecl;
+    List<VarDecl*> *varDeclList;
 	VarDeclError *varDeclError;
 	FnDecl *fnDecl;
 	FormalsError *formalsError;
@@ -90,10 +92,6 @@ void yyerror(const char *msg); // standard error-handling routine
 	Type *type;
 	NamedType *namedType;
 	ArrayType *arrayType;
-/*
-    Decl *decl;
-    List<Decl*> *declList;
-*/	
 }
 
 
@@ -136,6 +134,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <ident>           Identifier
 %type <error>           Error
 %type <decl>            Decl
+%type <declList>        DeclList
 %type <varDecl>         VarDecl
 %type <varDeclError>    VarDeclError
 %type <fnDecl>          FnDecl
@@ -179,10 +178,9 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <namedType>       NamedType
 %type <arrayType>       ArrayType
 
-/*
-%type <decl>      Decl
-%type <declList>  DeclList 
-*/
+%type <varDecl>         Formal
+%type <varDeclList>     Formals
+
 
 %%
 /* Rules
@@ -193,7 +191,7 @@ void yyerror(const char *msg); // standard error-handling routine
  */
 
 
-Program   :    DeclList            { 
+Program   : DeclList              { 
                                       @1; 
                                       Program *program = new Program($1);
                                       if (ReportError::NumErrors() == 0) 
@@ -201,14 +199,37 @@ Program   :    DeclList            {
                                    }
           ;
 
-DeclList  :    DeclList Decl        { ($$=$1)->Append($2); }
-          |    Decl                 { ($$ = new List<Decl*>)->Append($1); }
+DeclList  : DeclList Decl        { ($$=$1)->Append($2); }
+          | Decl                 { ($$ = new List<Decl*>)->Append($1); }
           ;
 
 
-Decl      :    T_Void               { $$ = new VarDecl(); }
-		  |    Type Identifier      { $$ = new VarDecl($2, $1); }
+Decl      : VarDecl               { $$ = $1; }
+		  | FnDecl                { $$ = $1; }
           ;
+
+Formals   : Formals ',' Formal    { ($$ = $1)->append($2); }
+          | Formal                { ($$ = new List<Formal*>)->append($1); }
+          ;
+
+Formal    : Type Identifier       { $$ = new VarDecl($2, $1); }
+          ;
+
+VarDecl   : Type Identifier ';'   { $$ = new VarDecl($2, $1); }
+          ;
+
+FnDecl    : Type Identifier '(' Formals ')' Stmt { 
+                                    ($$ = new FnDecl($2, $1, $3))->SetFunctionBody($4);
+                                                 }
+          ;
+
+Type      : T_Void                { $$ = new Type("void"); }
+          | T_Bool                { $$ = new Type("bool"); } 
+          | T_Int                 { $$ = new Type("int"); }
+          | T_Float               { $$ = new Type("float"); } 
+          ; 
+
+Identifier : T_Identifier         { $$ = new Identifier(yylloc, $1); }      
 
 %%
 
@@ -223,7 +244,7 @@ Decl      :    T_Void               { $$ = new VarDecl(); }
  * This function will be called before any calls to yyparse().  It is designed
  * to give you an opportunity to do anything that must be done to initialize
  * the parser (set global variables, configure starting state, etc.). One
- * thing it already does for you is assign the value of the global variable
+ * thing it already does for you is assign the value of the global varAt the top level, the program is composed of a series of declarations (a declList).  We have the declaration of global, and then the declaration of main.  The problem is, the declaration of global also involved an assignment.  Because a program must be a series of declarations, it seems that "int global = 5;" must produce a declaration that is somehow composed of an assignment.  How do we approach this?iable
  * yydebug that controls whether yacc prints debugging information about
  * parser actions (shift/reduce) and contents of state stack during parser.
  * If set to false, no information is printed. Setting it to true will give
