@@ -44,52 +44,52 @@ void yyerror(const char *msg); // standard error-handling routine
     char *stringConstant;
     double doubleConstant;
     char identifier[MaxIdentLen+1]; // +1 for terminating null
-		Node *node;
-		Identifier *ident;
-		Error *error;
-		Decl *decl;
-		VarDecl *varDecl;
-		VarDeclError *varDeclError;
-		FnDecl *fnDecl;
-		FormalsError *formalsError;
-		Expr *expr;
-		ExprError *exprError;
-		EmptyExpr *emptyExpr;
-		IntConstant *intConst;
-		FloatConstant *floatConst;
-		BoolConstant *boolConst;
-		Operator *operator;
-		CompoundExpr *compoundExpr;
-		ArithmeticExpr *arithmeticExpr;
-		RelationalExpr *relationalExpr;
-		EqualityExpr *equalityExpr;
-		LogicalExpr *logicalExpr;
-		AssignExpr *assignExpr;
-		PostfixExpr *postfixExpr;
-		LValue *lValue;
-		ArrayAccess *arrayAccess;
-		FieldAccess *fieldAccess;
-		Call *call;
-		ActualsError *actualsError;
-		Program *program;
-		Stmt *stmt;
-		StmtBlock *stmtBlock;
-		ConditionalStmt *conditionalStmt;
-		LoopStmt *loopStmt;
-		ForStmt *forStmt;
-		WhileStmt *whileStmt;
-		IfStmt *ifStmt;
-		IfStmtExprError *ifStmtExprError;
-		BreakStmt *breakStmt;
-		ReturnStmt *returnStmt;
-		SwitchLabel *switchLabel;
-		Case *case;
-		Default *default;
-		SwitchStmt *switchStmt;
-		SwitchStmtError *switchStmtError;
-		Type *type;
-		NamedType *namedType;
-		ArrayType *arrayType;
+	Node *node;
+	Identifier *ident;
+	Error *error;
+	Decl *decl;
+	VarDecl *varDecl;
+	VarDeclError *varDeclError;
+	FnDecl *fnDecl;
+	FormalsError *formalsError;
+	Expr *expr;
+	ExprError *exprError;
+	EmptyExpr *emptyExpr;
+	IntConstant *intConst;
+	FloatConstant *floatConst;
+	BoolConstant *boolConst;
+	Operator *operator;
+	CompoundExpr *compoundExpr;
+	ArithmeticExpr *arithmeticExpr;
+	RelationalExpr *relationalExpr;
+	EqualityExpr *equalityExpr;
+	LogicalExpr *logicalExpr;
+	AssignExpr *assignExpr;
+	PostfixExpr *postfixExpr;
+	LValue *lValue;
+	ArrayAccess *arrayAccess;
+	FieldAccess *fieldAccess;
+	Call *call;
+	ActualsError *actualsError;
+	Program *program;
+	Stmt *stmt;
+	StmtBlock *stmtBlock;
+	ConditionalStmt *conditionalStmt;
+	LoopStmt *loopStmt;
+	ForStmt *forStmt;
+	WhileStmt *whileStmt;
+	IfStmt *ifStmt;
+	IfStmtExprError *ifStmtExprError;
+	BreakStmt *breakStmt;
+	ReturnStmt *returnStmt;
+	SwitchLabel *switchLabel;
+	Case *case;
+	Default *default;
+	SwitchStmt *switchStmt;
+	SwitchStmtError *switchStmtError;
+	Type *type;
+	NamedType *namedType;
+	ArrayType *arrayType;
 /*
     Decl *decl;
     List<Decl*> *declList;
@@ -198,7 +198,7 @@ Program   :    DeclList            {
                                       Program *program = new Program($1);
                                       if (ReportError::NumErrors() == 0) 
                                           program->Print(0);
-                                    }
+                                   }
           ;
 
 DeclList  :    DeclList Decl        { ($$=$1)->Append($2); }
@@ -207,7 +207,7 @@ DeclList  :    DeclList Decl        { ($$=$1)->Append($2); }
 
 
 Decl      :    T_Void               { $$ = new VarDecl(); }
-					|    Type Identifier      { $$ = new VarDecl($2, $1); }
+		  |    Type Identifier      { $$ = new VarDecl($2, $1); }
           ;
 
 %%
