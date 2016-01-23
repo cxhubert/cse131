@@ -60,7 +60,7 @@ void yyerror(const char *msg); // standard error-handling routine
 	IntConstant *intConst;
 	FloatConstant *floatConst;
 	BoolConstant *boolConst;
-	Operator *operator;
+	Operator *_operator;
 	CompoundExpr *compoundExpr;
 	ArithmeticExpr *arithmeticExpr;
 	RelationalExpr *relationalExpr;
@@ -85,8 +85,8 @@ void yyerror(const char *msg); // standard error-handling routine
 	BreakStmt *breakStmt;
 	ReturnStmt *returnStmt;
 	SwitchLabel *switchLabel;
-	Case *case;
-	Default *default;
+	Case *_case;
+	Default *_default;
 	SwitchStmt *switchStmt;
 	SwitchStmtError *switchStmtError;
 	Type *type;
@@ -101,15 +101,15 @@ void yyerror(const char *msg); // standard error-handling routine
  * Bison will assign unique numbers to these and export the #define
  * in the generated y.tab.h header file.
  */
-%token   T_Void T_Bool T_Int T_Float T_UInt
+%token   T_Void T_Bool T_Int T_Float
 %token   T_BVec2 T_BVec3 T_BVec4 T_IVec2 T_IVec3 T_IVec4 T_UVec2 T_UVec3 T_UVec4 T_Vec2 T_Vec3 T_Vec4
 %token   T_Mat2 T_Mat3 T_Mat4
-%token   T_Struct
+%token   T_Struct T_FieldSelection
 %token   T_In T_Out T_InOut
 %token   T_Const T_Uniform
 %token   T_Layout
 
-%token   T_LessEqual T_GreaterEqual T_Equal T_NotEqual T_Dims
+%token   T_LessEqual T_GreaterEqual T_Equal T_NotEqual
 %token   T_And T_Or 
 %token   T_While T_For T_If T_Else T_Return T_Break T_Continue T_Do
 %token   T_Inc T_Dec T_Switch T_Case T_Default T_Mul_Assign T_Div_Assign T_Add_Assign T_Sub_Assign
@@ -180,6 +180,74 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <arrayType>       ArrayType
 */
 
+%type <node> Pri_Expr
+%type <node> Post_Expr
+%type <node> Int_Expr
+%type <node> Fn_Call
+%type <node> Fn_Call_Hdr_No_Param
+%type <node> Fn_Call_Hdr_With_Param
+%type <node> Fn_Call_Hdr
+%type <node> Fn_Ident
+%type <node> Un_Expr
+%type <node> Un_Op
+%type <node> Mul_Expr
+%type <node> Add_Expr
+%type <node> Rel_Expr
+%type <node> Eq_Expr
+%type <node> Log_And_Expr
+%type <node> Log_Or_Expr
+%type <node> Cond_Expr
+%type <node> Assn_Expr
+%type <node> Assn_Oper
+%type <node> Expr
+%type <node> Const_Expr
+%type <decl> Decl
+%type <node> Ident_List
+%type <node> Fn_Proto
+%type <node> Fn_Declr
+%type <node> Fn_Hdr
+%type <node> Fn_Hdr_With_Param
+%type <node> Param_Declr
+%type <node> Param_Decl
+%type <node> Param_Type_Spec
+%type <node> Init_Declr_List
+%type <node> Single_Decl
+%type <node> Fully_Spec_Type
+%type <node> Layout_Q
+%type <node> Layout_ID_List
+%type <node> Layout_ID
+%type <node> Type_Q
+%type <node> Single_Type_Q
+%type <node> Storage_Q
+%type <node> Type_Spec
+%type <node> Arr_Spec
+%type <node> Type_Spec_Nonarr
+%type <node> Struct_Spec
+%type <node> Struct_Decl_List
+%type <node> Struct_Decl
+%type <node> Struct_Declr_List    
+%type <node> Struct_Declr
+%type <node> Init
+%type <node> Decl_Stmt
+%type <node> Stmt
+%type <node> Simple_Stmt
+%type <node> Compd_Stmt
+%type <node> Stmt_List
+%type <node> Expr_Stmt
+%type <node> Select_Stmt
+%type <node> Select_Rest_Stmt
+%type <node> Cond
+%type <node> Switch_Stmt
+%type <node> Switch_Stmt_List
+%type <node> Case_Label
+%type <node> Iter_Stmt
+%type <node> For_Init_Stmt
+%type <node> For_Rest_Stmt
+%type <node> Jump_Stmt
+%type <declList> Trans_Unit
+%type <decl> Ext_Decl
+%type <fnDecl> Fn_Def
+%type <program> Program
 
 %%
 /* Rules
@@ -191,36 +259,35 @@ void yyerror(const char *msg); // standard error-handling routine
 
 
 Program   : Trans_Unit             { 
+                                      /*
                                       @1; 
                                       Program *program = new Program($1);
                                       if (ReportError::NumErrors() == 0) 
                                           program->Print(0);
+                                       */
                                    }
           ;
 
-Var_Ident : T_Identifier {}
-          ;
-
-Pri_Expr  : Var_Ident {}
+Pri_Expr  : T_Identifier {}
           | T_IntConstant {}
           | T_FloatConstant {}
           | T_BoolConstant {}
-          | ‘(‘ Expr ‘)’ {}
+          | '(' Expr ')' {}
           ;
 
 Post_Expr : Pri_Expr {}
-          | Post_Expr ‘[‘ Int_Expr ‘]’ {}
+          | Post_Expr '[' Int_Expr ']' {}
           | Fn_Call {}
-          | Post_Expr ‘.’ T_FieldSelection {}
-          | T_Inc {}
-          | T_Dec {}
+          | Post_Expr '.' T_FieldSelection {}
+          | Post_Expr T_Inc {}
+          | Post_Expr T_Dec {}
           ; 
 
 Int_Expr : Expr {}
          ;
 
-Fn_Call  : Fn_Call_Hdr_No_Param ‘)’ {}
-         | Fn_Call_Hdr_With_Param ‘)’ {}
+Fn_Call  : Fn_Call_Hdr_No_Param ')' {}
+         | Fn_Call_Hdr_With_Param ')' {}
          ;
 
 Fn_Call_Hdr_No_Param  : Fn_Call_Hdr T_Void {}
@@ -228,10 +295,10 @@ Fn_Call_Hdr_No_Param  : Fn_Call_Hdr T_Void {}
                       ;
 
 Fn_Call_Hdr_With_Param : Fn_Call_Hdr Assn_Expr {}
-                       | Fn_Call_Hdr_With_Param ‘,’ Assn_Expr {}
+                       | Fn_Call_Hdr_With_Param ',' Assn_Expr {}
                        ;
 
-Fn_Call_Hdr : Fn_Ident ‘(‘ {}
+Fn_Call_Hdr : Fn_Ident '(' {}
             ;
 
 Fn_Ident : Type_Spec {}
@@ -244,23 +311,23 @@ Un_Expr : Post_Expr {}
         | Un_Op Un_Expr {}
         ;
 
-Un_Op : ‘+’ {}
-      | ‘-’ {}
+Un_Op : '+' {}
+      | '-' {}
       ;
 
 Mul_Expr    : Un_Expr {}
-            | Mul_Expr ‘*’ Un_Expr {}
-            | Mul_Expr ‘/’ Un_Expr {}
+            | Mul_Expr '*' Un_Expr {}
+            | Mul_Expr '/' Un_Expr {}
             ;
 
 Add_Expr    : Mul_Expr {}
-            | Add_Expr ‘+’ Mul_Expr {}
-            | Add_Expr ‘-’ Mul_Expr {}
+            | Add_Expr '+' Mul_Expr {}
+            | Add_Expr '-' Mul_Expr {}
             ;
 
 Rel_Expr    : Add_Expr {}
-            | Rel_Expr ‘<’ Add_Expr {}
-            | Rel_Expr ‘>’ Add_Expr {}
+            | Rel_Expr '<' Add_Expr {}
+            | Rel_Expr '>' Add_Expr {}
             | Rel_Expr T_LessEqual Add_Expr {}
             | Rel_Expr T_GreaterEqual Add_Expr {}
             ;
@@ -285,7 +352,7 @@ Assn_Expr : Cond_Expr {}
           | Un_Expr Assn_Oper Assn_Expr {}
           ;
 
-Assn_Oper : ‘=’ {}
+Assn_Oper : '=' {}
           | T_Mul_Assign {}
           | T_Div_Assign {}
           | T_Add_Assign {}
@@ -293,34 +360,34 @@ Assn_Oper : ‘=’ {}
           ;
 
 Expr : Assn_Expr {}
-     | Expr ‘,’ Assn_Expr {}
+     | Expr ',' Assn_Expr {}
      ;
 
 Const_Expr : Cond_Expr {}
            ;
 
-Decl : Init_Declr_List ‘;’ {}
-     | Type_Q ‘;’ {}
-     | Type_Q T_Identifier ‘;’ {}
-     | Type_Q T_Identifier Ident_List ‘;’ {}
+Decl : Init_Declr_List ';' {}
+     | Type_Q ';' {}
+     | Type_Q T_Identifier ';' {}
+     | Type_Q T_Identifier Ident_List ';' {}
      ;
 
-Ident_List : ‘,’ T_Identifier {}
-           | Ident_List ‘,’ T_Identifier {}
+Ident_List : ',' T_Identifier {}
+           | Ident_List ',' T_Identifier {}
            ;
 
-Fn_Proto : Fn_Declr ‘)‘ {}
+Fn_Proto : Fn_Declr ')' {}
          ;
 
 Fn_Declr : Fn_Hdr {}
          | Fn_Hdr_With_Param {}
          ;
 
-Fn_Hdr : Fully_Spec_Type T_Identifier ‘(‘ {}
+Fn_Hdr : Fully_Spec_Type T_Identifier '(' {}
        ;
 
 Fn_Hdr_With_Param : Fn_Hdr Param_Decl {}
-                  | Fn_Hdr_With_Param ‘,’ Param_Decl {}
+                  | Fn_Hdr_With_Param ',' Param_Decl {}
                   ;
 
 Param_Declr : Type_Spec T_Identifier {}
@@ -337,32 +404,32 @@ Param_Type_Spec : Type_Spec {}
                 ;
 
 Init_Declr_List : Single_Decl {}
-                | Init_Declr_List ‘,’ T_Identifier {}
-                | Init_Declr_List ‘,’ T_Identifier Arr_Spec {}
-                | Init_Declr_List ‘,’ T_Identifier Arr_Spec ‘=’ Init {}
-                | Init_Declr_List ‘,’ T_Identifier ‘=’ Init {}
+                | Init_Declr_List ',' T_Identifier {}
+                | Init_Declr_List ',' T_Identifier Arr_Spec {}
+                | Init_Declr_List ',' T_Identifier Arr_Spec '=' Init {}
+                | Init_Declr_List ',' T_Identifier '=' Init {}
                 ;
 
 Single_Decl : Fully_Spec_Type {}
             | Fully_Spec_Type T_Identifier {}
             | Fully_Spec_Type T_Identifier Arr_Spec {} 
-            | Fully_Spec_Type T_Identifier Arr_Spec ‘=’ Init {}
-            | Fully_Spec_Type T_Identifier ‘=’ Init {} 
+            | Fully_Spec_Type T_Identifier Arr_Spec '=' Init {}
+            | Fully_Spec_Type T_Identifier '=' Init {} 
             ;
 
 Fully_Spec_Type : Type_Spec {}
                 | Type_Q Type_Spec {}
                 ;
 
-Layout_Q : T_Layout ‘(‘ Layout_ID_List ‘)’ {}
+Layout_Q : T_Layout '(' Layout_ID_List ')' {}
          ;
 
 Layout_ID_List : Layout_ID {}
-               | Layout_ID_List ‘,’ Layout_ID {}
+               | Layout_ID_List ',' Layout_ID {}
                ;
 
 Layout_ID : T_Identifier {}
-          | T_Identifier ‘=’ T_IntConstant {}
+          | T_Identifier '=' T_IntConstant {}
           ;
 
 Type_Q : Single_Type_Q {}
@@ -384,14 +451,15 @@ Type_Spec       : Type_Spec_Nonarr    {}
                 | Type_Spec_Nonarr Arr_Spec {}
                 ;
 
-Arr_Spec        : ‘[’ ‘]’ {}
-                | Arr_Spec ‘[’ ‘]’ {}
+Arr_Spec        : '[' ']' {}
+                | '[' Const_Expr ']' {}
+                | Arr_Spec '[' ']' {}
+                | Arr_Spec '[' Const_Expr ']' {}
                 ;
 
 Type_Spec_Nonarr : T_Void {}
                  | T_Float {}
                  | T_Int {}
-                 | T_Uint {}
                  | T_Bool {}
                  | T_Vec2 {}
                  | T_Vec3 {}
@@ -411,20 +479,20 @@ Type_Spec_Nonarr : T_Void {}
                  | Struct_Spec {}
                  ;
 
-Struct_Spec : T_Struct T_Identifier ‘{’ Struct_Decl_List ‘}’ {}
-            | T_Struct ‘{’ Struct_Decl_List ‘}’ {}
+Struct_Spec : T_Struct T_Identifier '{' Struct_Decl_List '}' {}
+            | T_Struct '{' Struct_Decl_List '}' {}
             ;
 
 Struct_Decl_List : Struct_Decl {}
                  | Struct_Decl_List Struct_Decl {}
                  ;
 
-Struct_Decl : Type_Spec Struct_Decl_List ‘;’ {}
-            | Type_Q Type_Spec Struct_Decl_List ‘;’ {}
+Struct_Decl : Type_Spec Struct_Declr_List ';' {}
+            | Type_Q Type_Spec Struct_Declr_List ';' {}
             ;
 
 Struct_Declr_List : Struct_Declr {}
-                  | Struct_Declr_List ‘,’ Struct_Declr {}
+                  | Struct_Declr_List ',' Struct_Declr {}
                   ;
 
 Struct_Declr : T_Identifier {}
@@ -445,24 +513,24 @@ Simple_Stmt : Decl_Stmt {}
             | Expr_Stmt {}
             | Select_Stmt {}
             | Switch_Stmt {}
-            | Case_Stmt {}
+            | Case_Label {}
             | Iter_Stmt {}
             | Jump_Stmt {}
             ;
 
-Compd_Stmt  : ‘{’ ’}’ {}
-            | ‘{’ Stmt_List ‘}’ {}
+Compd_Stmt  : '{' '}' {}
+            | '{' Stmt_List '}' {}
             ;
 
 Stmt_List   : Stmt {}
             | Stmt_List Stmt {}
             ;
 
-Expr_Stmt   : ‘;’ {}
-            | Expr ‘;’ {}
+Expr_Stmt   : ';' {}
+            | Expr ';' {}
             ;
 
-Select_Stmt : T_If ‘(’ Expr ‘)’ Select_Rest_Stmt {}
+Select_Stmt : T_If '(' Expr ')' Select_Rest_Stmt {}
             ;
 
 Select_Rest_Stmt : Stmt T_Else Stmt {}
@@ -470,44 +538,44 @@ Select_Rest_Stmt : Stmt T_Else Stmt {}
                  ;
 
 Cond    : Expr {}
-        | Fully_Spec_Type T_Identifier T_Equal Initializer {}
+        | Fully_Spec_Type T_Identifier T_Equal Init {}
         ;
 
-Switch_Stmt : T_Switch ‘(’ Expr ‘)’ ‘{’ Switch_Stmt_List ‘}’ {}
+Switch_Stmt : T_Switch '(' Expr ')' '{' Switch_Stmt_List '}' {}
             ;
 
 Switch_Stmt_List : Stmt_List {}
                  ;
 
-Case_Label  : T_Case Expr ‘:’ {}
-            | T_Default ‘:’ {}
+Case_Label  : T_Case Expr ':' {}
+            | T_Default ':' {}
             ;
 
-Iter_Stmt   : T_While ‘(’ Cond ‘)’ Stmt {}
-            | T_Do Stmt T_While ‘(’ Expr ‘)’ ‘;’ {}
-            | T_For ‘(’ For_Init_Stmt For_Rest_Stmt ‘)’ Stmt {}
+Iter_Stmt   : T_While '(' Cond ')' Stmt {}
+            | T_Do Stmt T_While '(' Expr ')' ';' {}
+            | T_For '(' For_Init_Stmt For_Rest_Stmt ')' Stmt {}
             ;
 
 For_Init_Stmt   : Expr_Stmt {}
                 | Decl_Stmt {}
                 ;
 
-For_Rest_Stmt   : Cond ‘;’ {}
-                | Cond ‘;’ Expr {}
+For_Rest_Stmt   : Cond ';' {}
+                | Cond ';' Expr {}
                 ;
 
-Jump_Stmt   : T_Continue ‘;’ {}
-            | T_Break ‘;’ {}
-            | T_Return ‘;’ {}
-            | T_Return Expr ‘;’ {}
+Jump_Stmt   : T_Continue ';' {}
+            | T_Break ';' {}
+            | T_Return ';' {}
+            | T_Return Expr ';' {}
             ;
 
-Trans_Unit : Trans_Unit Ext_Decl    { ($$=$1)->Append($2); }
-           | Ext_Decl               { ($$ = new List<Decl*>)->Append($1); }
+Trans_Unit : Trans_Unit Ext_Decl    { }
+           | Ext_Decl               { }
            ;
 
-Ext_Decl  : Fn_Def                { $$ = $1; }
-          | Decl                  { $$ = $1; }
+Ext_Decl  : Fn_Def                {  }
+          | Decl                  {  }
           ;
 
 Fn_Def : Fn_Proto Compd_Stmt {}

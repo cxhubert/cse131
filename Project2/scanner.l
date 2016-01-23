@@ -8,8 +8,8 @@
 #include <string.h>
 #include "scanner.h"
 #include "utility.h" // for PrintDebug()
-#include "errors.h"
 #include "parser.h" // for token codes, yylval
+#include "errors.h"
 #include <vector>
 using namespace std;
 
@@ -20,6 +20,9 @@ using namespace std;
  * (For shame!) But we need a few to keep track of things that are
  * preserved between calls to yylex or used outside the scanner.
  */
+
+struct yyltype yylloc;
+
 static int curLineNum, curColNum;
 vector<const char*> savedLines;
 
@@ -78,7 +81,7 @@ SINGLE_COMMENT    ("//"[^\n]*)
 {SINGLE_COMMENT}       { /* skip to end of line for // comment */ }
 
 
-/* --------------------- Keywords ------------------------------- */
+ /* --------------------- Keywords ------------------------------- */
 "void"              { return T_Void;        }
 "int"               { return T_Int;         }
 "float"             { return T_Float;       }
@@ -105,18 +108,17 @@ SINGLE_COMMENT    ("//"[^\n]*)
 "mat4"              { return T_Mat4;        }
 "vec2"              { return T_Vec2;        }
 "vec3"     	        { return T_Vec3;        }
-"vec4"     	        { return T_Vec4; 	    }
-"ivec2"    	    	{ return T_IVec2; 	    }
-"ivec3"    	    	{ return T_IVec3; 	    }
-"ivec4"    	    	{ return T_IVec4; 	    }
-"bvec2"    	    	{ return T_BVec2; 	    }
-"bvec3"    	    	{ return T_BVec3; 	    }
-"bvec4"    	    	{ return T_BVec4; 	    }
-"uint"     	    	{ return T_UInt; 	    }
-"uvec2"    	    	{ return T_UVec2; 	    }
-"uvec3"    	    	{ return T_UVec3; 	    }
-"uvec4"    	    	{ return T_UVec4; 	    }
-"struct"   	    	{ return T_Struct; 	    }
+"vec4"     	        { return T_Vec4; 	      }
+"ivec2"    	    	  { return T_IVec2; 	    }
+"ivec3"    	    	  { return T_IVec3; 	    }
+"ivec4"    	    	  { return T_IVec4; 	    }
+"bvec2"    	    	  { return T_BVec2; 	    }
+"bvec3"    	    	  { return T_BVec3; 	    }
+"bvec4"    	    	  { return T_BVec4; 	    }
+"uvec2"    	    	  { return T_UVec2; 	    }
+"uvec3"    	    	  { return T_UVec3; 	    }
+"uvec4"    	    	  { return T_UVec4; 	    }
+"struct"   	    	  { return T_Struct; 	    }
 
 
 
@@ -127,13 +129,12 @@ SINGLE_COMMENT    ("//"[^\n]*)
 "!="                { return T_NotEqual;    }
 "&&"                { return T_And;         }
 "||"                { return T_Or;          }
-"[]"                { return T_Dims;        }
 "++"                { return T_Inc;         }
 "--"                { return T_Dec;         }
-"+="		    	{ return T_Add_Assign;  }
-"-="		    	{ return T_Sub_Assign;  }
-"*="		    	{ return T_Mul_Assign;  }
-"/="		    	{ return T_Div_Assign;  }
+"+="		    	      { return T_Add_Assign;  }
+"-="		    	      { return T_Sub_Assign;  }
+"*="		    	      { return T_Mul_Assign;  }
+"/="		    	      { return T_Div_Assign;  }
 {OPERATOR}          { return yytext[0];     }
 
  /* -------------------- Constants ------------------------------ */
