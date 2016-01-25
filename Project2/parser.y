@@ -328,8 +328,8 @@ Param_Decl : Param_Declr {}
 Single_Decl : Fully_Spec_Type T_Identifier {}
             ;
 
-Fully_Spec_Type : Type_Spec {}
-                | Type_Q Type_Spec {}
+Fully_Spec_Type : Type_Spec { $$ = $1; }
+                | Type_Q Type_Spec { $$ = $2; }
                 ;
 
 Layout_Q : T_Layout '(' Layout_ID_List ')' {}
