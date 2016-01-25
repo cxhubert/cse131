@@ -432,8 +432,8 @@ Trans_Unit : Trans_Unit Ext_Decl    { }
            | Ext_Decl               { }
            ;
 
-Ext_Decl  : Fn_Def                {/* $$ = $1; */}
-          | Decl                  {/* $$ = $1; */}
+Ext_Decl  : Fn_Def                { $$ = $1; }
+          | Decl                  { $$ = $1; }
           ;
 
 Fn_Def : Fn_Proto Compd_Stmt {}
