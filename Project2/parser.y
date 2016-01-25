@@ -42,7 +42,6 @@ void yyerror(const char *msg); // standard error-handling routine
   int integerConstant;
   bool boolConstant;
   float floatConstant;
-  double doubleConstant;
   char identifier[MaxIdentLen+1]; // +1 for terminating null
 	Node *node;
 	Identifier *ident;
@@ -131,54 +130,6 @@ void yyerror(const char *msg); // standard error-handling routine
  * of the union named "declList" which is of type List<Decl*>.
  * pp2: You'll need to add many of these of your own.
  */
-/*
-%type <ident>           Identifier
-%type <error>           Error
-%type <decl>            Decl
-%type <declList>        DeclList
-%type <varDecl>         VarDecl
-%type <varDeclError>    VarDeclError
-%type <fnDecl>          FnDecl
-%type <formalsError>    FormalsError
-%type <expr>            Expr
-%type <exprError>       ExprError
-%type <emptyExpr>       EmptyExpr
-%type <intConst>        IntConstant
-%type <floatConst>      FloatConstant
-%type <boolConst>       BoolConstant
-%type <operator>        Operator
-%type <compoundExpr>    CompoundExpr
-%type <arithmeticExpr>  ArithmeticExpr
-%type <relationalExpr>  RelationalExpr
-%type <equalityExpr>    EqualityExpr
-%type <logicalExpr>     LogicalExpr
-%type <assignExpr>      AssignExpr
-%type <postfixExpr>     PostfixExpr
-%type <lValue>          LValue
-%type <arrayAccess>     ArrayAccess
-%type <fieldAccess>     FieldAccess
-%type <call>            Call
-%type <actualsError>    ActualsError
-%type <program>         Program
-%type <stmt>            Stmt
-%type <stmtBlock>       StmtBlock
-%type <conditionalStmt> ConditionalStmt
-%type <loopStmt>        LoopStmt
-%type <forStmt>         ForStmt
-%type <whileStmt>       WhileStmt
-%type <ifStmt>          IfStmt
-%type <ifStmtExprError> IfStmtExprError
-%type <breakStmt>       BreakStmt
-%type <returnStmt>      ReturnStmt
-%type <switchLabel>     SwitchLabel
-%type <case>            Case
-%type <default>         Default
-%type <switchStmt>      SwitchStmt
-%type <switchStmtError> SwitchStmtError
-%type <type>            Type
-%type <namedType>       NamedType
-%type <arrayType>       ArrayType
-*/
 
 %type <node> Pri_Expr
 %type <node> Post_Expr
@@ -196,11 +147,9 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <node> Eq_Expr
 %type <node> Log_And_Expr
 %type <node> Log_Or_Expr
-%type <node> Cond_Expr
 %type <node> Assn_Expr
 %type <node> Assn_Oper
 %type <node> Expr
-%type <node> Const_Expr
 %type <decl> Decl
 %type <node> Fn_Proto
 %type <node> Fn_Declr
@@ -208,8 +157,6 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <node> Fn_Hdr_With_Param
 %type <node> Param_Declr
 %type <node> Param_Decl
-%type <node> Param_Type_Spec
-%type <node> Init_Declr_List
 %type <node> Single_Decl
 %type <node> Fully_Spec_Type
 %type <node> Layout_Q
@@ -219,8 +166,6 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <node> Single_Type_Q
 %type <node> Storage_Q
 %type <node> Type_Spec
-%type <node> Type_Spec_Nonarr
-%type <node> Init
 %type <node> Decl_Stmt
 %type <node> Stmt
 %type <node> Simple_Stmt
@@ -336,10 +281,7 @@ Log_Or_Expr : Log_And_Expr    {}
             | Log_Or_Expr T_Or Log_And_Expr {}
             ;
 
-Cond_Expr : Log_Or_Expr {}
-          ;
-
-Assn_Expr : Cond_Expr {}
+Assn_Expr : Log_Or_Expr {}
           | Un_Expr Assn_Oper Assn_Expr {}
           ;
 
@@ -353,11 +295,8 @@ Assn_Oper : '=' {}
 Expr : Assn_Expr {}
      ;
 
-Const_Expr : Cond_Expr {}
-           ;
-
 Decl : Fn_Proto ';' {}
-     | Init_Declr_List ';' {}
+     | Single_Decl ';' {}
      | Type_Q T_Identifier ';' {}
      ;
 
@@ -376,20 +315,12 @@ Fn_Hdr_With_Param : Fn_Hdr Param_Decl {}
 Fn_Hdr : Fully_Spec_Type T_Identifier '(' {}
        ;
 
-
-
 Param_Declr : Type_Spec T_Identifier {}
             ;
 
 Param_Decl : Param_Declr {}
-           | Param_Type_Spec {}
+           | Type_Spec {}
            ;
-
-Param_Type_Spec : Type_Spec {}
-                ;
-
-Init_Declr_List : Single_Decl {}
-                ;
 
 Single_Decl : Fully_Spec_Type T_Identifier {}
             ;
@@ -420,10 +351,7 @@ Storage_Q       : T_In {}
                 | T_Uniform {}
                 ;
 
-Type_Spec       : Type_Spec_Nonarr    {}
-                ;
-
-Type_Spec_Nonarr : T_Void { $$ = Type::voidType; }
+Type_Spec :        T_Void { $$ = Type::voidType; }
                  | T_Float{ $$ = Type::floatType; }
                  | T_Int  { $$ = Type::intType; }
                  | T_Bool { $$ = Type::boolType; }
@@ -434,9 +362,6 @@ Type_Spec_Nonarr : T_Void { $$ = Type::voidType; }
                  | T_Mat3 { $$ = Type::mat3Type; }
                  | T_Mat4 { $$ = Type::mat4Type; }
                  ;
-
-Init : Assn_Expr {}
-     ;
 
 Decl_Stmt   : Decl {}
             ;
@@ -473,10 +398,11 @@ Select_Rest_Stmt : Stmt T_Else Stmt {}
                  ;
 
 Cond    : Expr {}
-        | Fully_Spec_Type T_Identifier T_Equal Init {}
+        | Fully_Spec_Type T_Identifier T_Equal Assn_Expr {}
         ;
 
 Switch_Stmt : T_Switch '(' Expr ')' '{' Switch_Stmt_List '}' {}
+            | T_Switch '(' Expr ')' '{''}' {}
             ;
 
 Switch_Stmt_List : Stmt_List {}
