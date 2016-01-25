@@ -1328,7 +1328,7 @@ YY_RULE_SETUP
 case 49:
 YY_RULE_SETUP
 #line 135 "scanner.l"
-{ yylval.doubleConstant = atof(yytext);
+{ yylval.floatConstant = atof(yytext);
                          return T_FloatConstant; }
 	YY_BREAK
 /* -------------------- Identifiers --------------------------- */

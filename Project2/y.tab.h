@@ -138,7 +138,6 @@ typedef union YYSTYPE
   int integerConstant;
   bool boolConstant;
   float floatConstant;
-  double doubleConstant;
   char identifier[MaxIdentLen+1]; // +1 for terminating null
 	Node *node;
 	Identifier *ident;
@@ -192,7 +191,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 196 "y.tab.h"
+#line 195 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

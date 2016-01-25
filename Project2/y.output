@@ -1,7 +1,6 @@
 Nonterminals useless in grammar
 
    Int_Expr
-   Const_Expr
 
 
 Terminals unused in grammar
@@ -13,12 +12,10 @@ Terminals unused in grammar
 
 Rules useless in grammar
 
-  128 Int_Expr: Expr
-
-  129 Const_Expr: Cond_Expr
+  124 Int_Expr: Expr
 
 
-State 186 conflicts: 1 shift/reduce
+State 182 conflicts: 1 shift/reduce
 
 
 Grammar
@@ -85,190 +82,181 @@ Grammar
    43 Log_Or_Expr: Log_And_Expr
    44            | Log_Or_Expr T_Or Log_And_Expr
 
-   45 Cond_Expr: Log_Or_Expr
+   45 Assn_Expr: Log_Or_Expr
+   46          | Un_Expr Assn_Oper Assn_Expr
 
-   46 Assn_Expr: Cond_Expr
-   47          | Un_Expr Assn_Oper Assn_Expr
+   47 Assn_Oper: '='
+   48          | T_Mul_Assign
+   49          | T_Div_Assign
+   50          | T_Add_Assign
+   51          | T_Sub_Assign
 
-   48 Assn_Oper: '='
-   49          | T_Mul_Assign
-   50          | T_Div_Assign
-   51          | T_Add_Assign
-   52          | T_Sub_Assign
+   52 Expr: Assn_Expr
 
-   53 Expr: Assn_Expr
+   53 Decl: Fn_Proto ';'
+   54     | Single_Decl ';'
+   55     | Type_Q T_Identifier ';'
 
-   54 Decl: Fn_Proto ';'
-   55     | Init_Declr_List ';'
-   56     | Type_Q T_Identifier ';'
+   56 Fn_Proto: Fn_Declr ')'
 
-   57 Fn_Proto: Fn_Declr ')'
+   57 Fn_Declr: Fn_Hdr
+   58         | Fn_Hdr_With_Param
 
-   58 Fn_Declr: Fn_Hdr
-   59         | Fn_Hdr_With_Param
+   59 Fn_Hdr_With_Param: Fn_Hdr Param_Decl
+   60                  | Fn_Hdr_With_Param ',' Param_Decl
 
-   60 Fn_Hdr_With_Param: Fn_Hdr Param_Decl
-   61                  | Fn_Hdr_With_Param ',' Param_Decl
+   61 Fn_Hdr: Fully_Spec_Type T_Identifier '('
 
-   62 Fn_Hdr: Fully_Spec_Type T_Identifier '('
+   62 Param_Declr: Type_Spec T_Identifier
 
-   63 Param_Declr: Type_Spec T_Identifier
+   63 Param_Decl: Param_Declr
+   64           | Type_Spec
 
-   64 Param_Decl: Param_Declr
-   65           | Param_Type_Spec
+   65 Single_Decl: Fully_Spec_Type T_Identifier
 
-   66 Param_Type_Spec: Type_Spec
+   66 Fully_Spec_Type: Type_Spec
+   67                | Type_Q Type_Spec
 
-   67 Init_Declr_List: Single_Decl
+   68 Layout_Q: T_Layout '(' Layout_ID_List ')'
 
-   68 Single_Decl: Fully_Spec_Type T_Identifier
+   69 Layout_ID_List: Layout_ID
 
-   69 Fully_Spec_Type: Type_Spec
-   70                | Type_Q Type_Spec
+   70 Layout_ID: T_Identifier '=' T_IntConstant
 
-   71 Layout_Q: T_Layout '(' Layout_ID_List ')'
+   71 Type_Q: Single_Type_Q
+   72       | Type_Q Single_Type_Q
 
-   72 Layout_ID_List: Layout_ID
+   73 Single_Type_Q: Storage_Q
+   74              | Layout_Q
 
-   73 Layout_ID: T_Identifier '=' T_IntConstant
+   75 Storage_Q: T_In
+   76          | T_Out
+   77          | T_Uniform
 
-   74 Type_Q: Single_Type_Q
-   75       | Type_Q Single_Type_Q
+   78 Type_Spec: T_Void
+   79          | T_Float
+   80          | T_Int
+   81          | T_Bool
+   82          | T_Vec2
+   83          | T_Vec3
+   84          | T_Vec4
+   85          | T_Mat2
+   86          | T_Mat3
+   87          | T_Mat4
 
-   76 Single_Type_Q: Storage_Q
-   77              | Layout_Q
+   88 Decl_Stmt: Decl
 
-   78 Storage_Q: T_In
-   79          | T_Out
-   80          | T_Uniform
+   89 Stmt: Compd_Stmt
+   90     | Simple_Stmt
 
-   81 Type_Spec: Type_Spec_Nonarr
+   91 Simple_Stmt: Decl_Stmt
+   92            | Expr_Stmt
+   93            | Select_Stmt
+   94            | Switch_Stmt
+   95            | Case_Label
+   96            | Iter_Stmt
 
-   82 Type_Spec_Nonarr: T_Void
-   83                 | T_Float
-   84                 | T_Int
-   85                 | T_Bool
-   86                 | T_Vec2
-   87                 | T_Vec3
-   88                 | T_Vec4
-   89                 | T_Mat2
-   90                 | T_Mat3
-   91                 | T_Mat4
+   97 Compd_Stmt: '{' '}'
+   98           | '{' Stmt_List '}'
 
-   92 Init: Assn_Expr
+   99 Stmt_List: Stmt
+  100          | Stmt_List Stmt
 
-   93 Decl_Stmt: Decl
+  101 Expr_Stmt: ';'
+  102          | Expr ';'
 
-   94 Stmt: Compd_Stmt
-   95     | Simple_Stmt
+  103 Select_Stmt: T_If '(' Expr ')' Select_Rest_Stmt
 
-   96 Simple_Stmt: Decl_Stmt
-   97            | Expr_Stmt
-   98            | Select_Stmt
-   99            | Switch_Stmt
-  100            | Case_Label
-  101            | Iter_Stmt
+  104 Select_Rest_Stmt: Stmt T_Else Stmt
+  105                 | Stmt
 
-  102 Compd_Stmt: '{' '}'
-  103           | '{' Stmt_List '}'
+  106 Cond: Expr
+  107     | Fully_Spec_Type T_Identifier T_Equal Assn_Expr
 
-  104 Stmt_List: Stmt
-  105          | Stmt_List Stmt
+  108 Switch_Stmt: T_Switch '(' Expr ')' '{' Switch_Stmt_List '}'
+  109            | T_Switch '(' Expr ')' '{' '}'
 
-  106 Expr_Stmt: ';'
-  107          | Expr ';'
+  110 Switch_Stmt_List: Stmt_List
 
-  108 Select_Stmt: T_If '(' Expr ')' Select_Rest_Stmt
+  111 Case_Label: T_Case Expr ':'
+  112           | T_Default ':'
 
-  109 Select_Rest_Stmt: Stmt T_Else Stmt
-  110                 | Stmt
+  113 Iter_Stmt: T_While '(' Cond ')' Stmt
+  114          | T_For '(' For_Init_Stmt For_Rest_Stmt ')' Stmt
 
-  111 Cond: Expr
-  112     | Fully_Spec_Type T_Identifier T_Equal Init
+  115 For_Init_Stmt: Expr_Stmt
+  116              | Decl_Stmt
 
-  113 Switch_Stmt: T_Switch '(' Expr ')' '{' Switch_Stmt_List '}'
+  117 For_Rest_Stmt: Cond ';'
+  118              | Cond ';' Expr
 
-  114 Switch_Stmt_List: Stmt_List
+  119 Trans_Unit: Trans_Unit Ext_Decl
+  120           | Ext_Decl
 
-  115 Case_Label: T_Case Expr ':'
-  116           | T_Default ':'
+  121 Ext_Decl: Fn_Def
+  122         | Decl
 
-  117 Iter_Stmt: T_While '(' Cond ')' Stmt
-  118          | T_For '(' For_Init_Stmt For_Rest_Stmt ')' Stmt
-
-  119 For_Init_Stmt: Expr_Stmt
-  120              | Decl_Stmt
-
-  121 For_Rest_Stmt: Cond ';'
-  122              | Cond ';' Expr
-
-  123 Trans_Unit: Trans_Unit Ext_Decl
-  124           | Ext_Decl
-
-  125 Ext_Decl: Fn_Def
-  126         | Decl
-
-  127 Fn_Def: Fn_Proto Compd_Stmt
+  123 Fn_Def: Fn_Proto Compd_Stmt
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
-'(' (40) 6 18 62 71 108 113 117 118
-')' (41) 6 12 13 57 71 108 113 117 118
+'(' (40) 6 18 61 68 103 108 109 113 114
+')' (41) 6 12 13 56 68 103 108 109 113 114
 '*' (42) 28
 '+' (43) 25 31
-',' (44) 17 61
+',' (44) 17 60
 '-' (45) 26 32
 '.' (46) 9
 '/' (47) 29
-':' (58) 115 116
-';' (59) 54 55 56 106 107 121 122
+':' (58) 111 112
+';' (59) 53 54 55 101 102 117 118
 '<' (60) 34
-'=' (61) 48 73
+'=' (61) 47 70
 '>' (62) 35
-'{' (123) 102 103 113
-'}' (125) 102 103 113
+'{' (123) 97 98 108 109
+'}' (125) 97 98 108 109
 error (256)
-T_Void (258) 14 82
-T_Bool (259) 85
-T_Int (260) 84
-T_Float (261) 83
-T_Vec2 (262) 86
-T_Vec3 (263) 87
-T_Vec4 (264) 88
-T_Mat2 (265) 89
-T_Mat3 (266) 90
-T_Mat4 (267) 91
+T_Void (258) 14 78
+T_Bool (259) 81
+T_Int (260) 80
+T_Float (261) 79
+T_Vec2 (262) 82
+T_Vec3 (263) 83
+T_Vec4 (264) 84
+T_Mat2 (265) 85
+T_Mat3 (266) 86
+T_Mat4 (267) 87
 T_FieldSelection (268) 9
-T_In (269) 78
-T_Out (270) 79
-T_Uniform (271) 80
-T_Layout (272) 71
+T_In (269) 75
+T_Out (270) 76
+T_Uniform (271) 77
+T_Layout (272) 68
 T_LessEqual (273) 36
 T_GreaterEqual (274) 37
-T_Equal (275) 39 112
+T_Equal (275) 39 107
 T_NotEqual (276) 40
 T_And (277) 42
 T_Or (278) 44
-T_While (279) 117
-T_For (280) 118
-T_If (281) 108
-T_Else (282) 109
+T_While (279) 113
+T_For (280) 114
+T_If (281) 103
+T_Else (282) 104
 T_Return (283)
 T_Break (284)
 T_Continue (285)
 T_Inc (286) 10 22
 T_Dec (287) 11 23
-T_Switch (288) 113
-T_Case (289) 115
-T_Default (290) 116
-T_Mul_Assign (291) 49
-T_Div_Assign (292) 50
-T_Add_Assign (293) 51
-T_Sub_Assign (294) 52
-T_Identifier (295) 2 56 62 63 68 73 112
-T_IntConstant (296) 3 73
+T_Switch (288) 108 109
+T_Case (289) 111
+T_Default (290) 112
+T_Mul_Assign (291) 48
+T_Div_Assign (292) 49
+T_Add_Assign (293) 50
+T_Sub_Assign (294) 51
+T_Identifier (295) 2 55 61 62 65 70 107
+T_IntConstant (296) 3 70
 T_FloatConstant (297) 4
 T_BoolConstant (298) 5
 
@@ -294,7 +282,7 @@ Fn_Call_Hdr (66)
 Fn_Ident (67)
     on left: 19 20, on right: 18
 Un_Expr (68)
-    on left: 21 22 23 24, on right: 22 23 24 27 28 29 47
+    on left: 21 22 23 24, on right: 22 23 24 27 28 29 46
 Un_Op (69)
     on left: 25 26, on right: 24
 Mul_Expr (70)
@@ -309,90 +297,80 @@ Log_And_Expr (74)
     on left: 41 42, on right: 42 43 44
 Log_Or_Expr (75)
     on left: 43 44, on right: 44 45
-Cond_Expr (76)
-    on left: 45, on right: 46
-Assn_Expr (77)
-    on left: 46 47, on right: 16 17 47 53 92
-Assn_Oper (78)
-    on left: 48 49 50 51 52, on right: 47
-Expr (79)
-    on left: 53, on right: 6 107 108 111 113 115 122
-Decl (80)
-    on left: 54 55 56, on right: 93 126
-Fn_Proto (81)
-    on left: 57, on right: 54 127
-Fn_Declr (82)
-    on left: 58 59, on right: 57
-Fn_Hdr_With_Param (83)
-    on left: 60 61, on right: 59 61
-Fn_Hdr (84)
-    on left: 62, on right: 58 60
-Param_Declr (85)
-    on left: 63, on right: 64
-Param_Decl (86)
-    on left: 64 65, on right: 60 61
-Param_Type_Spec (87)
-    on left: 66, on right: 65
-Init_Declr_List (88)
-    on left: 67, on right: 55
-Single_Decl (89)
-    on left: 68, on right: 67
-Fully_Spec_Type (90)
-    on left: 69 70, on right: 62 68 112
-Layout_Q (91)
-    on left: 71, on right: 77
-Layout_ID_List (92)
-    on left: 72, on right: 71
-Layout_ID (93)
-    on left: 73, on right: 72
-Type_Q (94)
-    on left: 74 75, on right: 56 70 75
-Single_Type_Q (95)
-    on left: 76 77, on right: 74 75
-Storage_Q (96)
-    on left: 78 79 80, on right: 76
-Type_Spec (97)
-    on left: 81, on right: 19 63 66 69 70
-Type_Spec_Nonarr (98)
-    on left: 82 83 84 85 86 87 88 89 90 91, on right: 81
-Init (99)
-    on left: 92, on right: 112
-Decl_Stmt (100)
-    on left: 93, on right: 96 120
-Stmt (101)
-    on left: 94 95, on right: 104 105 109 110 117 118
-Simple_Stmt (102)
-    on left: 96 97 98 99 100 101, on right: 95
-Compd_Stmt (103)
-    on left: 102 103, on right: 94 127
-Stmt_List (104)
-    on left: 104 105, on right: 103 105 114
-Expr_Stmt (105)
-    on left: 106 107, on right: 97 119
-Select_Stmt (106)
-    on left: 108, on right: 98
-Select_Rest_Stmt (107)
-    on left: 109 110, on right: 108
-Cond (108)
-    on left: 111 112, on right: 117 121 122
-Switch_Stmt (109)
-    on left: 113, on right: 99
-Switch_Stmt_List (110)
-    on left: 114, on right: 113
-Case_Label (111)
-    on left: 115 116, on right: 100
-Iter_Stmt (112)
-    on left: 117 118, on right: 101
-For_Init_Stmt (113)
-    on left: 119 120, on right: 118
-For_Rest_Stmt (114)
-    on left: 121 122, on right: 118
-Trans_Unit (115)
-    on left: 123 124, on right: 1 123
-Ext_Decl (116)
-    on left: 125 126, on right: 123 124
-Fn_Def (117)
-    on left: 127, on right: 125
+Assn_Expr (76)
+    on left: 45 46, on right: 16 17 46 52 107
+Assn_Oper (77)
+    on left: 47 48 49 50 51, on right: 46
+Expr (78)
+    on left: 52, on right: 6 102 103 106 108 109 111 118
+Decl (79)
+    on left: 53 54 55, on right: 88 122
+Fn_Proto (80)
+    on left: 56, on right: 53 123
+Fn_Declr (81)
+    on left: 57 58, on right: 56
+Fn_Hdr_With_Param (82)
+    on left: 59 60, on right: 58 60
+Fn_Hdr (83)
+    on left: 61, on right: 57 59
+Param_Declr (84)
+    on left: 62, on right: 63
+Param_Decl (85)
+    on left: 63 64, on right: 59 60
+Single_Decl (86)
+    on left: 65, on right: 54
+Fully_Spec_Type (87)
+    on left: 66 67, on right: 61 65 107
+Layout_Q (88)
+    on left: 68, on right: 74
+Layout_ID_List (89)
+    on left: 69, on right: 68
+Layout_ID (90)
+    on left: 70, on right: 69
+Type_Q (91)
+    on left: 71 72, on right: 55 67 72
+Single_Type_Q (92)
+    on left: 73 74, on right: 71 72
+Storage_Q (93)
+    on left: 75 76 77, on right: 73
+Type_Spec (94)
+    on left: 78 79 80 81 82 83 84 85 86 87, on right: 19 62 64 66 67
+Decl_Stmt (95)
+    on left: 88, on right: 91 116
+Stmt (96)
+    on left: 89 90, on right: 99 100 104 105 113 114
+Simple_Stmt (97)
+    on left: 91 92 93 94 95 96, on right: 90
+Compd_Stmt (98)
+    on left: 97 98, on right: 89 123
+Stmt_List (99)
+    on left: 99 100, on right: 98 100 110
+Expr_Stmt (100)
+    on left: 101 102, on right: 92 115
+Select_Stmt (101)
+    on left: 103, on right: 93
+Select_Rest_Stmt (102)
+    on left: 104 105, on right: 103
+Cond (103)
+    on left: 106 107, on right: 113 117 118
+Switch_Stmt (104)
+    on left: 108 109, on right: 94
+Switch_Stmt_List (105)
+    on left: 110, on right: 108
+Case_Label (106)
+    on left: 111 112, on right: 95
+Iter_Stmt (107)
+    on left: 113 114, on right: 96
+For_Init_Stmt (108)
+    on left: 115 116, on right: 114
+For_Rest_Stmt (109)
+    on left: 117 118, on right: 114
+Trans_Unit (110)
+    on left: 119 120, on right: 1 119
+Ext_Decl (111)
+    on left: 121 122, on right: 119 120
+Fn_Def (112)
+    on left: 123, on right: 121
 
 
 state 0
@@ -420,164 +398,162 @@ state 0
     Fn_Declr           go to state 18
     Fn_Hdr_With_Param  go to state 19
     Fn_Hdr             go to state 20
-    Init_Declr_List    go to state 21
-    Single_Decl        go to state 22
-    Fully_Spec_Type    go to state 23
-    Layout_Q           go to state 24
-    Type_Q             go to state 25
-    Single_Type_Q      go to state 26
-    Storage_Q          go to state 27
-    Type_Spec          go to state 28
-    Type_Spec_Nonarr   go to state 29
-    Trans_Unit         go to state 30
-    Ext_Decl           go to state 31
-    Fn_Def             go to state 32
+    Single_Decl        go to state 21
+    Fully_Spec_Type    go to state 22
+    Layout_Q           go to state 23
+    Type_Q             go to state 24
+    Single_Type_Q      go to state 25
+    Storage_Q          go to state 26
+    Type_Spec          go to state 27
+    Trans_Unit         go to state 28
+    Ext_Decl           go to state 29
+    Fn_Def             go to state 30
 
 
 state 1
 
-   82 Type_Spec_Nonarr: T_Void .
+   78 Type_Spec: T_Void .
 
-    $default  reduce using rule 82 (Type_Spec_Nonarr)
+    $default  reduce using rule 78 (Type_Spec)
 
 
 state 2
 
-   85 Type_Spec_Nonarr: T_Bool .
+   81 Type_Spec: T_Bool .
 
-    $default  reduce using rule 85 (Type_Spec_Nonarr)
+    $default  reduce using rule 81 (Type_Spec)
 
 
 state 3
 
-   84 Type_Spec_Nonarr: T_Int .
+   80 Type_Spec: T_Int .
 
-    $default  reduce using rule 84 (Type_Spec_Nonarr)
+    $default  reduce using rule 80 (Type_Spec)
 
 
 state 4
 
-   83 Type_Spec_Nonarr: T_Float .
+   79 Type_Spec: T_Float .
 
-    $default  reduce using rule 83 (Type_Spec_Nonarr)
+    $default  reduce using rule 79 (Type_Spec)
 
 
 state 5
 
-   86 Type_Spec_Nonarr: T_Vec2 .
+   82 Type_Spec: T_Vec2 .
 
-    $default  reduce using rule 86 (Type_Spec_Nonarr)
+    $default  reduce using rule 82 (Type_Spec)
 
 
 state 6
 
-   87 Type_Spec_Nonarr: T_Vec3 .
+   83 Type_Spec: T_Vec3 .
 
-    $default  reduce using rule 87 (Type_Spec_Nonarr)
+    $default  reduce using rule 83 (Type_Spec)
 
 
 state 7
 
-   88 Type_Spec_Nonarr: T_Vec4 .
+   84 Type_Spec: T_Vec4 .
 
-    $default  reduce using rule 88 (Type_Spec_Nonarr)
+    $default  reduce using rule 84 (Type_Spec)
 
 
 state 8
 
-   89 Type_Spec_Nonarr: T_Mat2 .
+   85 Type_Spec: T_Mat2 .
 
-    $default  reduce using rule 89 (Type_Spec_Nonarr)
+    $default  reduce using rule 85 (Type_Spec)
 
 
 state 9
 
-   90 Type_Spec_Nonarr: T_Mat3 .
+   86 Type_Spec: T_Mat3 .
 
-    $default  reduce using rule 90 (Type_Spec_Nonarr)
+    $default  reduce using rule 86 (Type_Spec)
 
 
 state 10
 
-   91 Type_Spec_Nonarr: T_Mat4 .
+   87 Type_Spec: T_Mat4 .
 
-    $default  reduce using rule 91 (Type_Spec_Nonarr)
+    $default  reduce using rule 87 (Type_Spec)
 
 
 state 11
 
-   78 Storage_Q: T_In .
+   75 Storage_Q: T_In .
 
-    $default  reduce using rule 78 (Storage_Q)
+    $default  reduce using rule 75 (Storage_Q)
 
 
 state 12
 
-   79 Storage_Q: T_Out .
+   76 Storage_Q: T_Out .
 
-    $default  reduce using rule 79 (Storage_Q)
+    $default  reduce using rule 76 (Storage_Q)
 
 
 state 13
 
-   80 Storage_Q: T_Uniform .
+   77 Storage_Q: T_Uniform .
 
-    $default  reduce using rule 80 (Storage_Q)
+    $default  reduce using rule 77 (Storage_Q)
 
 
 state 14
 
-   71 Layout_Q: T_Layout . '(' Layout_ID_List ')'
+   68 Layout_Q: T_Layout . '(' Layout_ID_List ')'
 
-    '('  shift, and go to state 33
+    '('  shift, and go to state 31
 
 
 state 15
 
     0 $accept: Program . $end
 
-    $end  shift, and go to state 34
+    $end  shift, and go to state 32
 
 
 state 16
 
-  126 Ext_Decl: Decl .
+  122 Ext_Decl: Decl .
 
-    $default  reduce using rule 126 (Ext_Decl)
+    $default  reduce using rule 122 (Ext_Decl)
 
 
 state 17
 
-   54 Decl: Fn_Proto . ';'
-  127 Fn_Def: Fn_Proto . Compd_Stmt
+   53 Decl: Fn_Proto . ';'
+  123 Fn_Def: Fn_Proto . Compd_Stmt
 
-    ';'  shift, and go to state 35
-    '{'  shift, and go to state 36
+    ';'  shift, and go to state 33
+    '{'  shift, and go to state 34
 
-    Compd_Stmt  go to state 37
+    Compd_Stmt  go to state 35
 
 
 state 18
 
-   57 Fn_Proto: Fn_Declr . ')'
+   56 Fn_Proto: Fn_Declr . ')'
 
-    ')'  shift, and go to state 38
+    ')'  shift, and go to state 36
 
 
 state 19
 
-   59 Fn_Declr: Fn_Hdr_With_Param .
-   61 Fn_Hdr_With_Param: Fn_Hdr_With_Param . ',' Param_Decl
+   58 Fn_Declr: Fn_Hdr_With_Param .
+   60 Fn_Hdr_With_Param: Fn_Hdr_With_Param . ',' Param_Decl
 
-    ','  shift, and go to state 39
+    ','  shift, and go to state 37
 
-    $default  reduce using rule 59 (Fn_Declr)
+    $default  reduce using rule 58 (Fn_Declr)
 
 
 state 20
 
-   58 Fn_Declr: Fn_Hdr .
-   60 Fn_Hdr_With_Param: Fn_Hdr . Param_Decl
+   57 Fn_Declr: Fn_Hdr .
+   59 Fn_Hdr_With_Param: Fn_Hdr . Param_Decl
 
     T_Void   shift, and go to state 1
     T_Bool   shift, and go to state 2
@@ -590,49 +566,40 @@ state 20
     T_Mat3   shift, and go to state 9
     T_Mat4   shift, and go to state 10
 
-    $default  reduce using rule 58 (Fn_Declr)
+    $default  reduce using rule 57 (Fn_Declr)
 
-    Param_Declr       go to state 40
-    Param_Decl        go to state 41
-    Param_Type_Spec   go to state 42
-    Type_Spec         go to state 43
-    Type_Spec_Nonarr  go to state 29
+    Param_Declr  go to state 38
+    Param_Decl   go to state 39
+    Type_Spec    go to state 40
 
 
 state 21
 
-   55 Decl: Init_Declr_List . ';'
+   54 Decl: Single_Decl . ';'
 
-    ';'  shift, and go to state 44
+    ';'  shift, and go to state 41
 
 
 state 22
 
-   67 Init_Declr_List: Single_Decl .
+   61 Fn_Hdr: Fully_Spec_Type . T_Identifier '('
+   65 Single_Decl: Fully_Spec_Type . T_Identifier
 
-    $default  reduce using rule 67 (Init_Declr_List)
+    T_Identifier  shift, and go to state 42
 
 
 state 23
 
-   62 Fn_Hdr: Fully_Spec_Type . T_Identifier '('
-   68 Single_Decl: Fully_Spec_Type . T_Identifier
+   74 Single_Type_Q: Layout_Q .
 
-    T_Identifier  shift, and go to state 45
+    $default  reduce using rule 74 (Single_Type_Q)
 
 
 state 24
 
-   77 Single_Type_Q: Layout_Q .
-
-    $default  reduce using rule 77 (Single_Type_Q)
-
-
-state 25
-
-   56 Decl: Type_Q . T_Identifier ';'
-   70 Fully_Spec_Type: Type_Q . Type_Spec
-   75 Type_Q: Type_Q . Single_Type_Q
+   55 Decl: Type_Q . T_Identifier ';'
+   67 Fully_Spec_Type: Type_Q . Type_Spec
+   72 Type_Q: Type_Q . Single_Type_Q
 
     T_Void        shift, and go to state 1
     T_Bool        shift, and go to state 2
@@ -648,47 +615,39 @@ state 25
     T_Out         shift, and go to state 12
     T_Uniform     shift, and go to state 13
     T_Layout      shift, and go to state 14
-    T_Identifier  shift, and go to state 46
+    T_Identifier  shift, and go to state 43
 
-    Layout_Q          go to state 24
-    Single_Type_Q     go to state 47
-    Storage_Q         go to state 27
-    Type_Spec         go to state 48
-    Type_Spec_Nonarr  go to state 29
+    Layout_Q       go to state 23
+    Single_Type_Q  go to state 44
+    Storage_Q      go to state 26
+    Type_Spec      go to state 45
+
+
+state 25
+
+   71 Type_Q: Single_Type_Q .
+
+    $default  reduce using rule 71 (Type_Q)
 
 
 state 26
 
-   74 Type_Q: Single_Type_Q .
+   73 Single_Type_Q: Storage_Q .
 
-    $default  reduce using rule 74 (Type_Q)
+    $default  reduce using rule 73 (Single_Type_Q)
 
 
 state 27
 
-   76 Single_Type_Q: Storage_Q .
+   66 Fully_Spec_Type: Type_Spec .
 
-    $default  reduce using rule 76 (Single_Type_Q)
+    $default  reduce using rule 66 (Fully_Spec_Type)
 
 
 state 28
 
-   69 Fully_Spec_Type: Type_Spec .
-
-    $default  reduce using rule 69 (Fully_Spec_Type)
-
-
-state 29
-
-   81 Type_Spec: Type_Spec_Nonarr .
-
-    $default  reduce using rule 81 (Type_Spec)
-
-
-state 30
-
     1 Program: Trans_Unit .
-  123 Trans_Unit: Trans_Unit . Ext_Decl
+  119 Trans_Unit: Trans_Unit . Ext_Decl
 
     T_Void     shift, and go to state 1
     T_Bool     shift, and go to state 2
@@ -712,61 +671,59 @@ state 30
     Fn_Declr           go to state 18
     Fn_Hdr_With_Param  go to state 19
     Fn_Hdr             go to state 20
-    Init_Declr_List    go to state 21
-    Single_Decl        go to state 22
-    Fully_Spec_Type    go to state 23
-    Layout_Q           go to state 24
-    Type_Q             go to state 25
-    Single_Type_Q      go to state 26
-    Storage_Q          go to state 27
-    Type_Spec          go to state 28
-    Type_Spec_Nonarr   go to state 29
-    Ext_Decl           go to state 49
-    Fn_Def             go to state 32
+    Single_Decl        go to state 21
+    Fully_Spec_Type    go to state 22
+    Layout_Q           go to state 23
+    Type_Q             go to state 24
+    Single_Type_Q      go to state 25
+    Storage_Q          go to state 26
+    Type_Spec          go to state 27
+    Ext_Decl           go to state 46
+    Fn_Def             go to state 30
+
+
+state 29
+
+  120 Trans_Unit: Ext_Decl .
+
+    $default  reduce using rule 120 (Trans_Unit)
+
+
+state 30
+
+  121 Ext_Decl: Fn_Def .
+
+    $default  reduce using rule 121 (Ext_Decl)
 
 
 state 31
 
-  124 Trans_Unit: Ext_Decl .
+   68 Layout_Q: T_Layout '(' . Layout_ID_List ')'
 
-    $default  reduce using rule 124 (Trans_Unit)
+    T_Identifier  shift, and go to state 47
+
+    Layout_ID_List  go to state 48
+    Layout_ID       go to state 49
 
 
 state 32
-
-  125 Ext_Decl: Fn_Def .
-
-    $default  reduce using rule 125 (Ext_Decl)
-
-
-state 33
-
-   71 Layout_Q: T_Layout '(' . Layout_ID_List ')'
-
-    T_Identifier  shift, and go to state 50
-
-    Layout_ID_List  go to state 51
-    Layout_ID       go to state 52
-
-
-state 34
 
     0 $accept: Program $end .
 
     $default  accept
 
 
-state 35
+state 33
 
-   54 Decl: Fn_Proto ';' .
+   53 Decl: Fn_Proto ';' .
 
-    $default  reduce using rule 54 (Decl)
+    $default  reduce using rule 53 (Decl)
 
 
-state 36
+state 34
 
-  102 Compd_Stmt: '{' . '}'
-  103           | '{' . Stmt_List '}'
+   97 Compd_Stmt: '{' . '}'
+   98           | '{' . Stmt_List '}'
 
     T_Void           shift, and go to state 1
     T_Bool           shift, and go to state 2
@@ -782,86 +739,83 @@ state 36
     T_Out            shift, and go to state 12
     T_Uniform        shift, and go to state 13
     T_Layout         shift, and go to state 14
-    T_While          shift, and go to state 53
-    T_For            shift, and go to state 54
-    T_If             shift, and go to state 55
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Switch         shift, and go to state 58
-    T_Case           shift, and go to state 59
-    T_Default        shift, and go to state 60
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
-    ';'              shift, and go to state 68
-    '{'              shift, and go to state 36
-    '}'              shift, and go to state 69
+    T_While          shift, and go to state 50
+    T_For            shift, and go to state 51
+    T_If             shift, and go to state 52
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Switch         shift, and go to state 55
+    T_Case           shift, and go to state 56
+    T_Default        shift, and go to state 57
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+    ';'              shift, and go to state 65
+    '{'              shift, and go to state 34
+    '}'              shift, and go to state 66
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 87
-    Decl                    go to state 88
-    Fn_Proto                go to state 89
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 83
+    Decl                    go to state 84
+    Fn_Proto                go to state 85
     Fn_Declr                go to state 18
     Fn_Hdr_With_Param       go to state 19
     Fn_Hdr                  go to state 20
-    Init_Declr_List         go to state 21
-    Single_Decl             go to state 22
-    Fully_Spec_Type         go to state 23
-    Layout_Q                go to state 24
-    Type_Q                  go to state 25
-    Single_Type_Q           go to state 26
-    Storage_Q               go to state 27
-    Type_Spec               go to state 90
-    Type_Spec_Nonarr        go to state 29
-    Decl_Stmt               go to state 91
-    Stmt                    go to state 92
-    Simple_Stmt             go to state 93
-    Compd_Stmt              go to state 94
-    Stmt_List               go to state 95
-    Expr_Stmt               go to state 96
-    Select_Stmt             go to state 97
-    Switch_Stmt             go to state 98
-    Case_Label              go to state 99
-    Iter_Stmt               go to state 100
+    Single_Decl             go to state 21
+    Fully_Spec_Type         go to state 22
+    Layout_Q                go to state 23
+    Type_Q                  go to state 24
+    Single_Type_Q           go to state 25
+    Storage_Q               go to state 26
+    Type_Spec               go to state 86
+    Decl_Stmt               go to state 87
+    Stmt                    go to state 88
+    Simple_Stmt             go to state 89
+    Compd_Stmt              go to state 90
+    Stmt_List               go to state 91
+    Expr_Stmt               go to state 92
+    Select_Stmt             go to state 93
+    Switch_Stmt             go to state 94
+    Case_Label              go to state 95
+    Iter_Stmt               go to state 96
+
+
+state 35
+
+  123 Fn_Def: Fn_Proto Compd_Stmt .
+
+    $default  reduce using rule 123 (Fn_Def)
+
+
+state 36
+
+   56 Fn_Proto: Fn_Declr ')' .
+
+    $default  reduce using rule 56 (Fn_Proto)
 
 
 state 37
 
-  127 Fn_Def: Fn_Proto Compd_Stmt .
-
-    $default  reduce using rule 127 (Fn_Def)
-
-
-state 38
-
-   57 Fn_Proto: Fn_Declr ')' .
-
-    $default  reduce using rule 57 (Fn_Proto)
-
-
-state 39
-
-   61 Fn_Hdr_With_Param: Fn_Hdr_With_Param ',' . Param_Decl
+   60 Fn_Hdr_With_Param: Fn_Hdr_With_Param ',' . Param_Decl
 
     T_Void   shift, and go to state 1
     T_Bool   shift, and go to state 2
@@ -874,132 +828,123 @@ state 39
     T_Mat3   shift, and go to state 9
     T_Mat4   shift, and go to state 10
 
-    Param_Declr       go to state 40
-    Param_Decl        go to state 101
-    Param_Type_Spec   go to state 42
-    Type_Spec         go to state 43
-    Type_Spec_Nonarr  go to state 29
+    Param_Declr  go to state 38
+    Param_Decl   go to state 97
+    Type_Spec    go to state 40
+
+
+state 38
+
+   63 Param_Decl: Param_Declr .
+
+    $default  reduce using rule 63 (Param_Decl)
+
+
+state 39
+
+   59 Fn_Hdr_With_Param: Fn_Hdr Param_Decl .
+
+    $default  reduce using rule 59 (Fn_Hdr_With_Param)
 
 
 state 40
 
-   64 Param_Decl: Param_Declr .
+   62 Param_Declr: Type_Spec . T_Identifier
+   64 Param_Decl: Type_Spec .
+
+    T_Identifier  shift, and go to state 98
 
     $default  reduce using rule 64 (Param_Decl)
 
 
 state 41
 
-   60 Fn_Hdr_With_Param: Fn_Hdr Param_Decl .
+   54 Decl: Single_Decl ';' .
 
-    $default  reduce using rule 60 (Fn_Hdr_With_Param)
+    $default  reduce using rule 54 (Decl)
 
 
 state 42
 
-   65 Param_Decl: Param_Type_Spec .
+   61 Fn_Hdr: Fully_Spec_Type T_Identifier . '('
+   65 Single_Decl: Fully_Spec_Type T_Identifier .
 
-    $default  reduce using rule 65 (Param_Decl)
+    '('  shift, and go to state 99
+
+    $default  reduce using rule 65 (Single_Decl)
 
 
 state 43
 
-   63 Param_Declr: Type_Spec . T_Identifier
-   66 Param_Type_Spec: Type_Spec .
+   55 Decl: Type_Q T_Identifier . ';'
 
-    T_Identifier  shift, and go to state 102
-
-    $default  reduce using rule 66 (Param_Type_Spec)
+    ';'  shift, and go to state 100
 
 
 state 44
 
-   55 Decl: Init_Declr_List ';' .
+   72 Type_Q: Type_Q Single_Type_Q .
 
-    $default  reduce using rule 55 (Decl)
+    $default  reduce using rule 72 (Type_Q)
 
 
 state 45
 
-   62 Fn_Hdr: Fully_Spec_Type T_Identifier . '('
-   68 Single_Decl: Fully_Spec_Type T_Identifier .
+   67 Fully_Spec_Type: Type_Q Type_Spec .
 
-    '('  shift, and go to state 103
-
-    $default  reduce using rule 68 (Single_Decl)
+    $default  reduce using rule 67 (Fully_Spec_Type)
 
 
 state 46
 
-   56 Decl: Type_Q T_Identifier . ';'
+  119 Trans_Unit: Trans_Unit Ext_Decl .
 
-    ';'  shift, and go to state 104
+    $default  reduce using rule 119 (Trans_Unit)
 
 
 state 47
 
-   75 Type_Q: Type_Q Single_Type_Q .
+   70 Layout_ID: T_Identifier . '=' T_IntConstant
 
-    $default  reduce using rule 75 (Type_Q)
+    '='  shift, and go to state 101
 
 
 state 48
 
-   70 Fully_Spec_Type: Type_Q Type_Spec .
+   68 Layout_Q: T_Layout '(' Layout_ID_List . ')'
 
-    $default  reduce using rule 70 (Fully_Spec_Type)
+    ')'  shift, and go to state 102
 
 
 state 49
 
-  123 Trans_Unit: Trans_Unit Ext_Decl .
+   69 Layout_ID_List: Layout_ID .
 
-    $default  reduce using rule 123 (Trans_Unit)
+    $default  reduce using rule 69 (Layout_ID_List)
 
 
 state 50
 
-   73 Layout_ID: T_Identifier . '=' T_IntConstant
+  113 Iter_Stmt: T_While . '(' Cond ')' Stmt
 
-    '='  shift, and go to state 105
+    '('  shift, and go to state 103
 
 
 state 51
 
-   71 Layout_Q: T_Layout '(' Layout_ID_List . ')'
+  114 Iter_Stmt: T_For . '(' For_Init_Stmt For_Rest_Stmt ')' Stmt
 
-    ')'  shift, and go to state 106
+    '('  shift, and go to state 104
 
 
 state 52
 
-   72 Layout_ID_List: Layout_ID .
+  103 Select_Stmt: T_If . '(' Expr ')' Select_Rest_Stmt
 
-    $default  reduce using rule 72 (Layout_ID_List)
+    '('  shift, and go to state 105
 
 
 state 53
-
-  117 Iter_Stmt: T_While . '(' Cond ')' Stmt
-
-    '('  shift, and go to state 107
-
-
-state 54
-
-  118 Iter_Stmt: T_For . '(' For_Init_Stmt For_Rest_Stmt ')' Stmt
-
-    '('  shift, and go to state 108
-
-
-state 55
-
-  108 Select_Stmt: T_If . '(' Expr ')' Select_Rest_Stmt
-
-    '('  shift, and go to state 109
-
-
-state 56
 
    22 Un_Expr: T_Inc . Un_Expr
 
@@ -1013,30 +958,29 @@ state 56
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 110
-    Un_Op                   go to state 78
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 106
+    Un_Op                   go to state 75
+    Type_Spec               go to state 107
 
 
-state 57
+state 54
 
    23 Un_Expr: T_Dec . Un_Expr
 
@@ -1050,39 +994,39 @@ state 57
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 112
-    Un_Op                   go to state 78
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
-
-
-state 58
-
-  113 Switch_Stmt: T_Switch . '(' Expr ')' '{' Switch_Stmt_List '}'
-
-    '('  shift, and go to state 113
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 108
+    Un_Op                   go to state 75
+    Type_Spec               go to state 107
 
 
-state 59
+state 55
 
-  115 Case_Label: T_Case . Expr ':'
+  108 Switch_Stmt: T_Switch . '(' Expr ')' '{' Switch_Stmt_List '}'
+  109            | T_Switch . '(' Expr ')' '{' '}'
+
+    '('  shift, and go to state 109
+
+
+state 56
+
+  111 Case_Label: T_Case . Expr ':'
 
     T_Void           shift, and go to state 1
     T_Bool           shift, and go to state 2
@@ -1094,74 +1038,72 @@ state 59
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 114
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 110
+    Type_Spec               go to state 107
 
 
-state 60
+state 57
 
-  116 Case_Label: T_Default . ':'
+  112 Case_Label: T_Default . ':'
 
-    ':'  shift, and go to state 115
+    ':'  shift, and go to state 111
 
 
-state 61
+state 58
 
     2 Pri_Expr: T_Identifier .
 
     $default  reduce using rule 2 (Pri_Expr)
 
 
-state 62
+state 59
 
     3 Pri_Expr: T_IntConstant .
 
     $default  reduce using rule 3 (Pri_Expr)
 
 
-state 63
+state 60
 
     4 Pri_Expr: T_FloatConstant .
 
     $default  reduce using rule 4 (Pri_Expr)
 
 
-state 64
+state 61
 
     5 Pri_Expr: T_BoolConstant .
 
     $default  reduce using rule 5 (Pri_Expr)
 
 
-state 65
+state 62
 
     6 Pri_Expr: '(' . Expr ')'
 
@@ -1175,74 +1117,72 @@ state 65
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 116
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 112
+    Type_Spec               go to state 107
 
 
-state 66
+state 63
 
    25 Un_Op: '+' .
 
     $default  reduce using rule 25 (Un_Op)
 
 
-state 67
+state 64
 
    26 Un_Op: '-' .
 
     $default  reduce using rule 26 (Un_Op)
 
 
-state 68
+state 65
 
-  106 Expr_Stmt: ';' .
+  101 Expr_Stmt: ';' .
 
-    $default  reduce using rule 106 (Expr_Stmt)
-
-
-state 69
-
-  102 Compd_Stmt: '{' '}' .
-
-    $default  reduce using rule 102 (Compd_Stmt)
+    $default  reduce using rule 101 (Expr_Stmt)
 
 
-state 70
+state 66
+
+   97 Compd_Stmt: '{' '}' .
+
+    $default  reduce using rule 97 (Compd_Stmt)
+
+
+state 67
 
     7 Post_Expr: Pri_Expr .
 
     $default  reduce using rule 7 (Post_Expr)
 
 
-state 71
+state 68
 
     9 Post_Expr: Post_Expr . '.' T_FieldSelection
    10          | Post_Expr . T_Inc
@@ -1250,44 +1190,44 @@ state 71
    20 Fn_Ident: Post_Expr .
    21 Un_Expr: Post_Expr .
 
-    T_Inc  shift, and go to state 117
-    T_Dec  shift, and go to state 118
-    '.'    shift, and go to state 119
+    T_Inc  shift, and go to state 113
+    T_Dec  shift, and go to state 114
+    '.'    shift, and go to state 115
 
     '('       reduce using rule 20 (Fn_Ident)
     $default  reduce using rule 21 (Un_Expr)
 
 
-state 72
+state 69
 
     8 Post_Expr: Fn_Call .
 
     $default  reduce using rule 8 (Post_Expr)
 
 
-state 73
+state 70
 
    12 Fn_Call: Fn_Call_Hdr_No_Param . ')'
 
-    ')'  shift, and go to state 120
+    ')'  shift, and go to state 116
 
 
-state 74
+state 71
 
    13 Fn_Call: Fn_Call_Hdr_With_Param . ')'
    17 Fn_Call_Hdr_With_Param: Fn_Call_Hdr_With_Param . ',' Assn_Expr
 
-    ')'  shift, and go to state 121
-    ','  shift, and go to state 122
+    ')'  shift, and go to state 117
+    ','  shift, and go to state 118
 
 
-state 75
+state 72
 
    14 Fn_Call_Hdr_No_Param: Fn_Call_Hdr . T_Void
    15                     | Fn_Call_Hdr .
    16 Fn_Call_Hdr_With_Param: Fn_Call_Hdr . Assn_Expr
 
-    T_Void           shift, and go to state 123
+    T_Void           shift, and go to state 119
     T_Bool           shift, and go to state 2
     T_Int            shift, and go to state 3
     T_Float          shift, and go to state 4
@@ -1297,63 +1237,61 @@ state 75
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
     $default  reduce using rule 15 (Fn_Call_Hdr_No_Param)
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 124
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 120
+    Type_Spec               go to state 107
 
 
-state 76
+state 73
 
    18 Fn_Call_Hdr: Fn_Ident . '('
 
-    '('  shift, and go to state 125
+    '('  shift, and go to state 121
 
 
-state 77
+state 74
 
    27 Mul_Expr: Un_Expr .
-   47 Assn_Expr: Un_Expr . Assn_Oper Assn_Expr
+   46 Assn_Expr: Un_Expr . Assn_Oper Assn_Expr
 
-    T_Mul_Assign  shift, and go to state 126
-    T_Div_Assign  shift, and go to state 127
-    T_Add_Assign  shift, and go to state 128
-    T_Sub_Assign  shift, and go to state 129
-    '='           shift, and go to state 130
+    T_Mul_Assign  shift, and go to state 122
+    T_Div_Assign  shift, and go to state 123
+    T_Add_Assign  shift, and go to state 124
+    T_Sub_Assign  shift, and go to state 125
+    '='           shift, and go to state 126
 
     $default  reduce using rule 27 (Mul_Expr)
 
-    Assn_Oper  go to state 131
+    Assn_Oper  go to state 127
 
 
-state 78
+state 75
 
    24 Un_Expr: Un_Op . Un_Expr
 
@@ -1367,54 +1305,53 @@ state 78
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 132
-    Un_Op                   go to state 78
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 128
+    Un_Op                   go to state 75
+    Type_Spec               go to state 107
 
 
-state 79
+state 76
 
    28 Mul_Expr: Mul_Expr . '*' Un_Expr
    29         | Mul_Expr . '/' Un_Expr
    30 Add_Expr: Mul_Expr .
 
-    '*'  shift, and go to state 133
-    '/'  shift, and go to state 134
+    '*'  shift, and go to state 129
+    '/'  shift, and go to state 130
 
     $default  reduce using rule 30 (Add_Expr)
 
 
-state 80
+state 77
 
    31 Add_Expr: Add_Expr . '+' Mul_Expr
    32         | Add_Expr . '-' Mul_Expr
    33 Rel_Expr: Add_Expr .
 
-    '+'  shift, and go to state 135
-    '-'  shift, and go to state 136
+    '+'  shift, and go to state 131
+    '-'  shift, and go to state 132
 
     $default  reduce using rule 33 (Rel_Expr)
 
 
-state 81
+state 78
 
    34 Rel_Expr: Rel_Expr . '<' Add_Expr
    35         | Rel_Expr . '>' Add_Expr
@@ -1422,468 +1359,452 @@ state 81
    37         | Rel_Expr . T_GreaterEqual Add_Expr
    38 Eq_Expr: Rel_Expr .
 
-    T_LessEqual     shift, and go to state 137
-    T_GreaterEqual  shift, and go to state 138
-    '<'             shift, and go to state 139
-    '>'             shift, and go to state 140
+    T_LessEqual     shift, and go to state 133
+    T_GreaterEqual  shift, and go to state 134
+    '<'             shift, and go to state 135
+    '>'             shift, and go to state 136
 
     $default  reduce using rule 38 (Eq_Expr)
 
 
-state 82
+state 79
 
    39 Eq_Expr: Eq_Expr . T_Equal Rel_Expr
    40        | Eq_Expr . T_NotEqual Rel_Expr
    41 Log_And_Expr: Eq_Expr .
 
-    T_Equal     shift, and go to state 141
-    T_NotEqual  shift, and go to state 142
+    T_Equal     shift, and go to state 137
+    T_NotEqual  shift, and go to state 138
 
     $default  reduce using rule 41 (Log_And_Expr)
 
 
-state 83
+state 80
 
    42 Log_And_Expr: Log_And_Expr . T_And Eq_Expr
    43 Log_Or_Expr: Log_And_Expr .
 
-    T_And  shift, and go to state 143
+    T_And  shift, and go to state 139
 
     $default  reduce using rule 43 (Log_Or_Expr)
 
 
-state 84
+state 81
 
    44 Log_Or_Expr: Log_Or_Expr . T_Or Log_And_Expr
-   45 Cond_Expr: Log_Or_Expr .
+   45 Assn_Expr: Log_Or_Expr .
 
-    T_Or  shift, and go to state 144
+    T_Or  shift, and go to state 140
 
-    $default  reduce using rule 45 (Cond_Expr)
+    $default  reduce using rule 45 (Assn_Expr)
+
+
+state 82
+
+   52 Expr: Assn_Expr .
+
+    $default  reduce using rule 52 (Expr)
+
+
+state 83
+
+  102 Expr_Stmt: Expr . ';'
+
+    ';'  shift, and go to state 141
+
+
+state 84
+
+   88 Decl_Stmt: Decl .
+
+    $default  reduce using rule 88 (Decl_Stmt)
 
 
 state 85
 
-   46 Assn_Expr: Cond_Expr .
+   53 Decl: Fn_Proto . ';'
 
-    $default  reduce using rule 46 (Assn_Expr)
+    ';'  shift, and go to state 33
 
 
 state 86
 
-   53 Expr: Assn_Expr .
+   19 Fn_Ident: Type_Spec .
+   66 Fully_Spec_Type: Type_Spec .
 
-    $default  reduce using rule 53 (Expr)
+    T_Identifier  reduce using rule 66 (Fully_Spec_Type)
+    $default      reduce using rule 19 (Fn_Ident)
 
 
 state 87
 
-  107 Expr_Stmt: Expr . ';'
+   91 Simple_Stmt: Decl_Stmt .
 
-    ';'  shift, and go to state 145
+    $default  reduce using rule 91 (Simple_Stmt)
 
 
 state 88
 
-   93 Decl_Stmt: Decl .
+   99 Stmt_List: Stmt .
 
-    $default  reduce using rule 93 (Decl_Stmt)
+    $default  reduce using rule 99 (Stmt_List)
 
 
 state 89
 
-   54 Decl: Fn_Proto . ';'
+   90 Stmt: Simple_Stmt .
 
-    ';'  shift, and go to state 35
+    $default  reduce using rule 90 (Stmt)
 
 
 state 90
 
-   19 Fn_Ident: Type_Spec .
-   69 Fully_Spec_Type: Type_Spec .
+   89 Stmt: Compd_Stmt .
 
-    T_Identifier  reduce using rule 69 (Fully_Spec_Type)
-    $default      reduce using rule 19 (Fn_Ident)
+    $default  reduce using rule 89 (Stmt)
 
 
 state 91
 
-   96 Simple_Stmt: Decl_Stmt .
+   98 Compd_Stmt: '{' Stmt_List . '}'
+  100 Stmt_List: Stmt_List . Stmt
 
-    $default  reduce using rule 96 (Simple_Stmt)
+    T_Void           shift, and go to state 1
+    T_Bool           shift, and go to state 2
+    T_Int            shift, and go to state 3
+    T_Float          shift, and go to state 4
+    T_Vec2           shift, and go to state 5
+    T_Vec3           shift, and go to state 6
+    T_Vec4           shift, and go to state 7
+    T_Mat2           shift, and go to state 8
+    T_Mat3           shift, and go to state 9
+    T_Mat4           shift, and go to state 10
+    T_In             shift, and go to state 11
+    T_Out            shift, and go to state 12
+    T_Uniform        shift, and go to state 13
+    T_Layout         shift, and go to state 14
+    T_While          shift, and go to state 50
+    T_For            shift, and go to state 51
+    T_If             shift, and go to state 52
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Switch         shift, and go to state 55
+    T_Case           shift, and go to state 56
+    T_Default        shift, and go to state 57
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+    ';'              shift, and go to state 65
+    '{'              shift, and go to state 34
+    '}'              shift, and go to state 142
+
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 83
+    Decl                    go to state 84
+    Fn_Proto                go to state 85
+    Fn_Declr                go to state 18
+    Fn_Hdr_With_Param       go to state 19
+    Fn_Hdr                  go to state 20
+    Single_Decl             go to state 21
+    Fully_Spec_Type         go to state 22
+    Layout_Q                go to state 23
+    Type_Q                  go to state 24
+    Single_Type_Q           go to state 25
+    Storage_Q               go to state 26
+    Type_Spec               go to state 86
+    Decl_Stmt               go to state 87
+    Stmt                    go to state 143
+    Simple_Stmt             go to state 89
+    Compd_Stmt              go to state 90
+    Expr_Stmt               go to state 92
+    Select_Stmt             go to state 93
+    Switch_Stmt             go to state 94
+    Case_Label              go to state 95
+    Iter_Stmt               go to state 96
 
 
 state 92
 
-  104 Stmt_List: Stmt .
+   92 Simple_Stmt: Expr_Stmt .
 
-    $default  reduce using rule 104 (Stmt_List)
+    $default  reduce using rule 92 (Simple_Stmt)
 
 
 state 93
 
-   95 Stmt: Simple_Stmt .
+   93 Simple_Stmt: Select_Stmt .
 
-    $default  reduce using rule 95 (Stmt)
+    $default  reduce using rule 93 (Simple_Stmt)
 
 
 state 94
 
-   94 Stmt: Compd_Stmt .
+   94 Simple_Stmt: Switch_Stmt .
 
-    $default  reduce using rule 94 (Stmt)
+    $default  reduce using rule 94 (Simple_Stmt)
 
 
 state 95
 
-  103 Compd_Stmt: '{' Stmt_List . '}'
-  105 Stmt_List: Stmt_List . Stmt
+   95 Simple_Stmt: Case_Label .
 
-    T_Void           shift, and go to state 1
-    T_Bool           shift, and go to state 2
-    T_Int            shift, and go to state 3
-    T_Float          shift, and go to state 4
-    T_Vec2           shift, and go to state 5
-    T_Vec3           shift, and go to state 6
-    T_Vec4           shift, and go to state 7
-    T_Mat2           shift, and go to state 8
-    T_Mat3           shift, and go to state 9
-    T_Mat4           shift, and go to state 10
-    T_In             shift, and go to state 11
-    T_Out            shift, and go to state 12
-    T_Uniform        shift, and go to state 13
-    T_Layout         shift, and go to state 14
-    T_While          shift, and go to state 53
-    T_For            shift, and go to state 54
-    T_If             shift, and go to state 55
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Switch         shift, and go to state 58
-    T_Case           shift, and go to state 59
-    T_Default        shift, and go to state 60
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
-    ';'              shift, and go to state 68
-    '{'              shift, and go to state 36
-    '}'              shift, and go to state 146
-
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 87
-    Decl                    go to state 88
-    Fn_Proto                go to state 89
-    Fn_Declr                go to state 18
-    Fn_Hdr_With_Param       go to state 19
-    Fn_Hdr                  go to state 20
-    Init_Declr_List         go to state 21
-    Single_Decl             go to state 22
-    Fully_Spec_Type         go to state 23
-    Layout_Q                go to state 24
-    Type_Q                  go to state 25
-    Single_Type_Q           go to state 26
-    Storage_Q               go to state 27
-    Type_Spec               go to state 90
-    Type_Spec_Nonarr        go to state 29
-    Decl_Stmt               go to state 91
-    Stmt                    go to state 147
-    Simple_Stmt             go to state 93
-    Compd_Stmt              go to state 94
-    Expr_Stmt               go to state 96
-    Select_Stmt             go to state 97
-    Switch_Stmt             go to state 98
-    Case_Label              go to state 99
-    Iter_Stmt               go to state 100
+    $default  reduce using rule 95 (Simple_Stmt)
 
 
 state 96
 
-   97 Simple_Stmt: Expr_Stmt .
+   96 Simple_Stmt: Iter_Stmt .
 
-    $default  reduce using rule 97 (Simple_Stmt)
+    $default  reduce using rule 96 (Simple_Stmt)
 
 
 state 97
 
-   98 Simple_Stmt: Select_Stmt .
+   60 Fn_Hdr_With_Param: Fn_Hdr_With_Param ',' Param_Decl .
 
-    $default  reduce using rule 98 (Simple_Stmt)
+    $default  reduce using rule 60 (Fn_Hdr_With_Param)
 
 
 state 98
 
-   99 Simple_Stmt: Switch_Stmt .
+   62 Param_Declr: Type_Spec T_Identifier .
 
-    $default  reduce using rule 99 (Simple_Stmt)
+    $default  reduce using rule 62 (Param_Declr)
 
 
 state 99
 
-  100 Simple_Stmt: Case_Label .
+   61 Fn_Hdr: Fully_Spec_Type T_Identifier '(' .
 
-    $default  reduce using rule 100 (Simple_Stmt)
+    $default  reduce using rule 61 (Fn_Hdr)
 
 
 state 100
 
-  101 Simple_Stmt: Iter_Stmt .
+   55 Decl: Type_Q T_Identifier ';' .
 
-    $default  reduce using rule 101 (Simple_Stmt)
+    $default  reduce using rule 55 (Decl)
 
 
 state 101
 
-   61 Fn_Hdr_With_Param: Fn_Hdr_With_Param ',' Param_Decl .
+   70 Layout_ID: T_Identifier '=' . T_IntConstant
 
-    $default  reduce using rule 61 (Fn_Hdr_With_Param)
+    T_IntConstant  shift, and go to state 144
 
 
 state 102
 
-   63 Param_Declr: Type_Spec T_Identifier .
+   68 Layout_Q: T_Layout '(' Layout_ID_List ')' .
 
-    $default  reduce using rule 63 (Param_Declr)
+    $default  reduce using rule 68 (Layout_Q)
 
 
 state 103
 
-   62 Fn_Hdr: Fully_Spec_Type T_Identifier '(' .
+  113 Iter_Stmt: T_While '(' . Cond ')' Stmt
 
-    $default  reduce using rule 62 (Fn_Hdr)
+    T_Void           shift, and go to state 1
+    T_Bool           shift, and go to state 2
+    T_Int            shift, and go to state 3
+    T_Float          shift, and go to state 4
+    T_Vec2           shift, and go to state 5
+    T_Vec3           shift, and go to state 6
+    T_Vec4           shift, and go to state 7
+    T_Mat2           shift, and go to state 8
+    T_Mat3           shift, and go to state 9
+    T_Mat4           shift, and go to state 10
+    T_In             shift, and go to state 11
+    T_Out            shift, and go to state 12
+    T_Uniform        shift, and go to state 13
+    T_Layout         shift, and go to state 14
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 145
+    Fully_Spec_Type         go to state 146
+    Layout_Q                go to state 23
+    Type_Q                  go to state 147
+    Single_Type_Q           go to state 25
+    Storage_Q               go to state 26
+    Type_Spec               go to state 86
+    Cond                    go to state 148
 
 
 state 104
 
-   56 Decl: Type_Q T_Identifier ';' .
+  114 Iter_Stmt: T_For '(' . For_Init_Stmt For_Rest_Stmt ')' Stmt
 
-    $default  reduce using rule 56 (Decl)
+    T_Void           shift, and go to state 1
+    T_Bool           shift, and go to state 2
+    T_Int            shift, and go to state 3
+    T_Float          shift, and go to state 4
+    T_Vec2           shift, and go to state 5
+    T_Vec3           shift, and go to state 6
+    T_Vec4           shift, and go to state 7
+    T_Mat2           shift, and go to state 8
+    T_Mat3           shift, and go to state 9
+    T_Mat4           shift, and go to state 10
+    T_In             shift, and go to state 11
+    T_Out            shift, and go to state 12
+    T_Uniform        shift, and go to state 13
+    T_Layout         shift, and go to state 14
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+    ';'              shift, and go to state 65
+
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 83
+    Decl                    go to state 84
+    Fn_Proto                go to state 85
+    Fn_Declr                go to state 18
+    Fn_Hdr_With_Param       go to state 19
+    Fn_Hdr                  go to state 20
+    Single_Decl             go to state 21
+    Fully_Spec_Type         go to state 22
+    Layout_Q                go to state 23
+    Type_Q                  go to state 24
+    Single_Type_Q           go to state 25
+    Storage_Q               go to state 26
+    Type_Spec               go to state 86
+    Decl_Stmt               go to state 149
+    Expr_Stmt               go to state 150
+    For_Init_Stmt           go to state 151
 
 
 state 105
 
-   73 Layout_ID: T_Identifier '=' . T_IntConstant
+  103 Select_Stmt: T_If '(' . Expr ')' Select_Rest_Stmt
 
-    T_IntConstant  shift, and go to state 148
+    T_Void           shift, and go to state 1
+    T_Bool           shift, and go to state 2
+    T_Int            shift, and go to state 3
+    T_Float          shift, and go to state 4
+    T_Vec2           shift, and go to state 5
+    T_Vec3           shift, and go to state 6
+    T_Vec4           shift, and go to state 7
+    T_Mat2           shift, and go to state 8
+    T_Mat3           shift, and go to state 9
+    T_Mat4           shift, and go to state 10
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 152
+    Type_Spec               go to state 107
 
 
 state 106
-
-   71 Layout_Q: T_Layout '(' Layout_ID_List ')' .
-
-    $default  reduce using rule 71 (Layout_Q)
-
-
-state 107
-
-  117 Iter_Stmt: T_While '(' . Cond ')' Stmt
-
-    T_Void           shift, and go to state 1
-    T_Bool           shift, and go to state 2
-    T_Int            shift, and go to state 3
-    T_Float          shift, and go to state 4
-    T_Vec2           shift, and go to state 5
-    T_Vec3           shift, and go to state 6
-    T_Vec4           shift, and go to state 7
-    T_Mat2           shift, and go to state 8
-    T_Mat3           shift, and go to state 9
-    T_Mat4           shift, and go to state 10
-    T_In             shift, and go to state 11
-    T_Out            shift, and go to state 12
-    T_Uniform        shift, and go to state 13
-    T_Layout         shift, and go to state 14
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
-
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 149
-    Fully_Spec_Type         go to state 150
-    Layout_Q                go to state 24
-    Type_Q                  go to state 151
-    Single_Type_Q           go to state 26
-    Storage_Q               go to state 27
-    Type_Spec               go to state 90
-    Type_Spec_Nonarr        go to state 29
-    Cond                    go to state 152
-
-
-state 108
-
-  118 Iter_Stmt: T_For '(' . For_Init_Stmt For_Rest_Stmt ')' Stmt
-
-    T_Void           shift, and go to state 1
-    T_Bool           shift, and go to state 2
-    T_Int            shift, and go to state 3
-    T_Float          shift, and go to state 4
-    T_Vec2           shift, and go to state 5
-    T_Vec3           shift, and go to state 6
-    T_Vec4           shift, and go to state 7
-    T_Mat2           shift, and go to state 8
-    T_Mat3           shift, and go to state 9
-    T_Mat4           shift, and go to state 10
-    T_In             shift, and go to state 11
-    T_Out            shift, and go to state 12
-    T_Uniform        shift, and go to state 13
-    T_Layout         shift, and go to state 14
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
-    ';'              shift, and go to state 68
-
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 87
-    Decl                    go to state 88
-    Fn_Proto                go to state 89
-    Fn_Declr                go to state 18
-    Fn_Hdr_With_Param       go to state 19
-    Fn_Hdr                  go to state 20
-    Init_Declr_List         go to state 21
-    Single_Decl             go to state 22
-    Fully_Spec_Type         go to state 23
-    Layout_Q                go to state 24
-    Type_Q                  go to state 25
-    Single_Type_Q           go to state 26
-    Storage_Q               go to state 27
-    Type_Spec               go to state 90
-    Type_Spec_Nonarr        go to state 29
-    Decl_Stmt               go to state 153
-    Expr_Stmt               go to state 154
-    For_Init_Stmt           go to state 155
-
-
-state 109
-
-  108 Select_Stmt: T_If '(' . Expr ')' Select_Rest_Stmt
-
-    T_Void           shift, and go to state 1
-    T_Bool           shift, and go to state 2
-    T_Int            shift, and go to state 3
-    T_Float          shift, and go to state 4
-    T_Vec2           shift, and go to state 5
-    T_Vec3           shift, and go to state 6
-    T_Vec4           shift, and go to state 7
-    T_Mat2           shift, and go to state 8
-    T_Mat3           shift, and go to state 9
-    T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
-
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 156
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
-
-
-state 110
 
    22 Un_Expr: T_Inc Un_Expr .
 
     $default  reduce using rule 22 (Un_Expr)
 
 
-state 111
+state 107
 
    19 Fn_Ident: Type_Spec .
 
     $default  reduce using rule 19 (Fn_Ident)
 
 
-state 112
+state 108
 
    23 Un_Expr: T_Dec Un_Expr .
 
     $default  reduce using rule 23 (Un_Expr)
 
 
-state 113
+state 109
 
-  113 Switch_Stmt: T_Switch '(' . Expr ')' '{' Switch_Stmt_List '}'
+  108 Switch_Stmt: T_Switch '(' . Expr ')' '{' Switch_Stmt_List '}'
+  109            | T_Switch '(' . Expr ')' '{' '}'
 
     T_Void           shift, and go to state 1
     T_Bool           shift, and go to state 2
@@ -1895,95 +1816,93 @@ state 113
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 157
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 153
+    Type_Spec               go to state 107
 
 
-state 114
+state 110
 
-  115 Case_Label: T_Case Expr . ':'
+  111 Case_Label: T_Case Expr . ':'
 
-    ':'  shift, and go to state 158
-
-
-state 115
-
-  116 Case_Label: T_Default ':' .
-
-    $default  reduce using rule 116 (Case_Label)
+    ':'  shift, and go to state 154
 
 
-state 116
+state 111
+
+  112 Case_Label: T_Default ':' .
+
+    $default  reduce using rule 112 (Case_Label)
+
+
+state 112
 
     6 Pri_Expr: '(' Expr . ')'
 
-    ')'  shift, and go to state 159
+    ')'  shift, and go to state 155
 
 
-state 117
+state 113
 
    10 Post_Expr: Post_Expr T_Inc .
 
     $default  reduce using rule 10 (Post_Expr)
 
 
-state 118
+state 114
 
    11 Post_Expr: Post_Expr T_Dec .
 
     $default  reduce using rule 11 (Post_Expr)
 
 
-state 119
+state 115
 
     9 Post_Expr: Post_Expr '.' . T_FieldSelection
 
-    T_FieldSelection  shift, and go to state 160
+    T_FieldSelection  shift, and go to state 156
 
 
-state 120
+state 116
 
    12 Fn_Call: Fn_Call_Hdr_No_Param ')' .
 
     $default  reduce using rule 12 (Fn_Call)
 
 
-state 121
+state 117
 
    13 Fn_Call: Fn_Call_Hdr_With_Param ')' .
 
     $default  reduce using rule 13 (Fn_Call)
 
 
-state 122
+state 118
 
    17 Fn_Call_Hdr_With_Param: Fn_Call_Hdr_With_Param ',' . Assn_Expr
 
@@ -1997,98 +1916,96 @@ state 122
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 161
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 157
+    Type_Spec               go to state 107
 
 
-state 123
+state 119
 
    14 Fn_Call_Hdr_No_Param: Fn_Call_Hdr T_Void .
-   82 Type_Spec_Nonarr: T_Void .
+   78 Type_Spec: T_Void .
 
-    '('       reduce using rule 82 (Type_Spec_Nonarr)
+    '('       reduce using rule 78 (Type_Spec)
     $default  reduce using rule 14 (Fn_Call_Hdr_No_Param)
 
 
-state 124
+state 120
 
    16 Fn_Call_Hdr_With_Param: Fn_Call_Hdr Assn_Expr .
 
     $default  reduce using rule 16 (Fn_Call_Hdr_With_Param)
 
 
-state 125
+state 121
 
    18 Fn_Call_Hdr: Fn_Ident '(' .
 
     $default  reduce using rule 18 (Fn_Call_Hdr)
 
 
-state 126
+state 122
 
-   49 Assn_Oper: T_Mul_Assign .
-
-    $default  reduce using rule 49 (Assn_Oper)
-
-
-state 127
-
-   50 Assn_Oper: T_Div_Assign .
-
-    $default  reduce using rule 50 (Assn_Oper)
-
-
-state 128
-
-   51 Assn_Oper: T_Add_Assign .
-
-    $default  reduce using rule 51 (Assn_Oper)
-
-
-state 129
-
-   52 Assn_Oper: T_Sub_Assign .
-
-    $default  reduce using rule 52 (Assn_Oper)
-
-
-state 130
-
-   48 Assn_Oper: '=' .
+   48 Assn_Oper: T_Mul_Assign .
 
     $default  reduce using rule 48 (Assn_Oper)
 
 
-state 131
+state 123
 
-   47 Assn_Expr: Un_Expr Assn_Oper . Assn_Expr
+   49 Assn_Oper: T_Div_Assign .
+
+    $default  reduce using rule 49 (Assn_Oper)
+
+
+state 124
+
+   50 Assn_Oper: T_Add_Assign .
+
+    $default  reduce using rule 50 (Assn_Oper)
+
+
+state 125
+
+   51 Assn_Oper: T_Sub_Assign .
+
+    $default  reduce using rule 51 (Assn_Oper)
+
+
+state 126
+
+   47 Assn_Oper: '=' .
+
+    $default  reduce using rule 47 (Assn_Oper)
+
+
+state 127
+
+   46 Assn_Expr: Un_Expr Assn_Oper . Assn_Expr
 
     T_Void           shift, and go to state 1
     T_Bool           shift, and go to state 2
@@ -2100,45 +2017,43 @@ state 131
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 162
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 158
+    Type_Spec               go to state 107
 
 
-state 132
+state 128
 
    24 Un_Expr: Un_Op Un_Expr .
 
     $default  reduce using rule 24 (Un_Expr)
 
 
-state 133
+state 129
 
    28 Mul_Expr: Mul_Expr '*' . Un_Expr
 
@@ -2152,30 +2067,29 @@ state 133
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 163
-    Un_Op                   go to state 78
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 159
+    Un_Op                   go to state 75
+    Type_Spec               go to state 107
 
 
-state 134
+state 130
 
    29 Mul_Expr: Mul_Expr '/' . Un_Expr
 
@@ -2189,30 +2103,29 @@ state 134
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 164
-    Un_Op                   go to state 78
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 160
+    Un_Op                   go to state 75
+    Type_Spec               go to state 107
 
 
-state 135
+state 131
 
    31 Add_Expr: Add_Expr '+' . Mul_Expr
 
@@ -2226,31 +2139,30 @@ state 135
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 165
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 166
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 161
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 162
+    Type_Spec               go to state 107
 
 
-state 136
+state 132
 
    32 Add_Expr: Add_Expr '-' . Mul_Expr
 
@@ -2264,31 +2176,30 @@ state 136
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 165
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 167
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 161
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 163
+    Type_Spec               go to state 107
 
 
-state 137
+state 133
 
    36 Rel_Expr: Rel_Expr T_LessEqual . Add_Expr
 
@@ -2302,32 +2213,31 @@ state 137
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 165
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 168
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 161
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 164
+    Type_Spec               go to state 107
 
 
-state 138
+state 134
 
    37 Rel_Expr: Rel_Expr T_GreaterEqual . Add_Expr
 
@@ -2341,32 +2251,31 @@ state 138
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 165
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 169
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 161
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 165
+    Type_Spec               go to state 107
 
 
-state 139
+state 135
 
    34 Rel_Expr: Rel_Expr '<' . Add_Expr
 
@@ -2380,32 +2289,31 @@ state 139
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 165
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 170
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 161
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 166
+    Type_Spec               go to state 107
 
 
-state 140
+state 136
 
    35 Rel_Expr: Rel_Expr '>' . Add_Expr
 
@@ -2419,32 +2327,31 @@ state 140
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 165
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 171
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 161
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 167
+    Type_Spec               go to state 107
 
 
-state 141
+state 137
 
    39 Eq_Expr: Eq_Expr T_Equal . Rel_Expr
 
@@ -2458,33 +2365,32 @@ state 141
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 165
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 172
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 161
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 168
+    Type_Spec               go to state 107
 
 
-state 142
+state 138
 
    40 Eq_Expr: Eq_Expr T_NotEqual . Rel_Expr
 
@@ -2498,33 +2404,32 @@ state 142
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 165
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 173
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 161
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 169
+    Type_Spec               go to state 107
 
 
-state 143
+state 139
 
    42 Log_And_Expr: Log_And_Expr T_And . Eq_Expr
 
@@ -2538,34 +2443,33 @@ state 143
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 165
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 174
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 161
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 170
+    Type_Spec               go to state 107
 
 
-state 144
+state 140
 
    44 Log_Or_Expr: Log_Or_Expr T_Or . Log_And_Expr
 
@@ -2579,80 +2483,79 @@ state 144
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 165
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 175
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 161
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 171
+    Type_Spec               go to state 107
+
+
+state 141
+
+  102 Expr_Stmt: Expr ';' .
+
+    $default  reduce using rule 102 (Expr_Stmt)
+
+
+state 142
+
+   98 Compd_Stmt: '{' Stmt_List '}' .
+
+    $default  reduce using rule 98 (Compd_Stmt)
+
+
+state 143
+
+  100 Stmt_List: Stmt_List Stmt .
+
+    $default  reduce using rule 100 (Stmt_List)
+
+
+state 144
+
+   70 Layout_ID: T_Identifier '=' T_IntConstant .
+
+    $default  reduce using rule 70 (Layout_ID)
 
 
 state 145
 
-  107 Expr_Stmt: Expr ';' .
+  106 Cond: Expr .
 
-    $default  reduce using rule 107 (Expr_Stmt)
+    $default  reduce using rule 106 (Cond)
 
 
 state 146
 
-  103 Compd_Stmt: '{' Stmt_List '}' .
+  107 Cond: Fully_Spec_Type . T_Identifier T_Equal Assn_Expr
 
-    $default  reduce using rule 103 (Compd_Stmt)
+    T_Identifier  shift, and go to state 172
 
 
 state 147
 
-  105 Stmt_List: Stmt_List Stmt .
-
-    $default  reduce using rule 105 (Stmt_List)
-
-
-state 148
-
-   73 Layout_ID: T_Identifier '=' T_IntConstant .
-
-    $default  reduce using rule 73 (Layout_ID)
-
-
-state 149
-
-  111 Cond: Expr .
-
-    $default  reduce using rule 111 (Cond)
-
-
-state 150
-
-  112 Cond: Fully_Spec_Type . T_Identifier T_Equal Init
-
-    T_Identifier  shift, and go to state 176
-
-
-state 151
-
-   70 Fully_Spec_Type: Type_Q . Type_Spec
-   75 Type_Q: Type_Q . Single_Type_Q
+   67 Fully_Spec_Type: Type_Q . Type_Spec
+   72 Type_Q: Type_Q . Single_Type_Q
 
     T_Void     shift, and go to state 1
     T_Bool     shift, and go to state 2
@@ -2669,37 +2572,36 @@ state 151
     T_Uniform  shift, and go to state 13
     T_Layout   shift, and go to state 14
 
-    Layout_Q          go to state 24
-    Single_Type_Q     go to state 47
-    Storage_Q         go to state 27
-    Type_Spec         go to state 48
-    Type_Spec_Nonarr  go to state 29
+    Layout_Q       go to state 23
+    Single_Type_Q  go to state 44
+    Storage_Q      go to state 26
+    Type_Spec      go to state 45
 
 
-state 152
+state 148
 
-  117 Iter_Stmt: T_While '(' Cond . ')' Stmt
+  113 Iter_Stmt: T_While '(' Cond . ')' Stmt
 
-    ')'  shift, and go to state 177
-
-
-state 153
-
-  120 For_Init_Stmt: Decl_Stmt .
-
-    $default  reduce using rule 120 (For_Init_Stmt)
+    ')'  shift, and go to state 173
 
 
-state 154
+state 149
 
-  119 For_Init_Stmt: Expr_Stmt .
+  116 For_Init_Stmt: Decl_Stmt .
 
-    $default  reduce using rule 119 (For_Init_Stmt)
+    $default  reduce using rule 116 (For_Init_Stmt)
 
 
-state 155
+state 150
 
-  118 Iter_Stmt: T_For '(' For_Init_Stmt . For_Rest_Stmt ')' Stmt
+  115 For_Init_Stmt: Expr_Stmt .
+
+    $default  reduce using rule 115 (For_Init_Stmt)
+
+
+state 151
+
+  114 Iter_Stmt: T_For '(' For_Init_Stmt . For_Rest_Stmt ')' Stmt
 
     T_Void           shift, and go to state 1
     T_Bool           shift, and go to state 2
@@ -2715,188 +2617,187 @@ state 155
     T_Out            shift, and go to state 12
     T_Uniform        shift, and go to state 13
     T_Layout         shift, and go to state 14
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 149
-    Fully_Spec_Type         go to state 150
-    Layout_Q                go to state 24
-    Type_Q                  go to state 151
-    Single_Type_Q           go to state 26
-    Storage_Q               go to state 27
-    Type_Spec               go to state 90
-    Type_Spec_Nonarr        go to state 29
-    Cond                    go to state 178
-    For_Rest_Stmt           go to state 179
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 145
+    Fully_Spec_Type         go to state 146
+    Layout_Q                go to state 23
+    Type_Q                  go to state 147
+    Single_Type_Q           go to state 25
+    Storage_Q               go to state 26
+    Type_Spec               go to state 86
+    Cond                    go to state 174
+    For_Rest_Stmt           go to state 175
 
 
-state 156
+state 152
 
-  108 Select_Stmt: T_If '(' Expr . ')' Select_Rest_Stmt
+  103 Select_Stmt: T_If '(' Expr . ')' Select_Rest_Stmt
 
-    ')'  shift, and go to state 180
-
-
-state 157
-
-  113 Switch_Stmt: T_Switch '(' Expr . ')' '{' Switch_Stmt_List '}'
-
-    ')'  shift, and go to state 181
+    ')'  shift, and go to state 176
 
 
-state 158
+state 153
 
-  115 Case_Label: T_Case Expr ':' .
+  108 Switch_Stmt: T_Switch '(' Expr . ')' '{' Switch_Stmt_List '}'
+  109            | T_Switch '(' Expr . ')' '{' '}'
 
-    $default  reduce using rule 115 (Case_Label)
+    ')'  shift, and go to state 177
 
 
-state 159
+state 154
+
+  111 Case_Label: T_Case Expr ':' .
+
+    $default  reduce using rule 111 (Case_Label)
+
+
+state 155
 
     6 Pri_Expr: '(' Expr ')' .
 
     $default  reduce using rule 6 (Pri_Expr)
 
 
-state 160
+state 156
 
     9 Post_Expr: Post_Expr '.' T_FieldSelection .
 
     $default  reduce using rule 9 (Post_Expr)
 
 
-state 161
+state 157
 
    17 Fn_Call_Hdr_With_Param: Fn_Call_Hdr_With_Param ',' Assn_Expr .
 
     $default  reduce using rule 17 (Fn_Call_Hdr_With_Param)
 
 
-state 162
+state 158
 
-   47 Assn_Expr: Un_Expr Assn_Oper Assn_Expr .
+   46 Assn_Expr: Un_Expr Assn_Oper Assn_Expr .
 
-    $default  reduce using rule 47 (Assn_Expr)
+    $default  reduce using rule 46 (Assn_Expr)
 
 
-state 163
+state 159
 
    28 Mul_Expr: Mul_Expr '*' Un_Expr .
 
     $default  reduce using rule 28 (Mul_Expr)
 
 
-state 164
+state 160
 
    29 Mul_Expr: Mul_Expr '/' Un_Expr .
 
     $default  reduce using rule 29 (Mul_Expr)
 
 
-state 165
+state 161
 
    27 Mul_Expr: Un_Expr .
 
     $default  reduce using rule 27 (Mul_Expr)
 
 
-state 166
+state 162
 
    28 Mul_Expr: Mul_Expr . '*' Un_Expr
    29         | Mul_Expr . '/' Un_Expr
    31 Add_Expr: Add_Expr '+' Mul_Expr .
 
-    '*'  shift, and go to state 133
-    '/'  shift, and go to state 134
+    '*'  shift, and go to state 129
+    '/'  shift, and go to state 130
 
     $default  reduce using rule 31 (Add_Expr)
 
 
-state 167
+state 163
 
    28 Mul_Expr: Mul_Expr . '*' Un_Expr
    29         | Mul_Expr . '/' Un_Expr
    32 Add_Expr: Add_Expr '-' Mul_Expr .
 
-    '*'  shift, and go to state 133
-    '/'  shift, and go to state 134
+    '*'  shift, and go to state 129
+    '/'  shift, and go to state 130
 
     $default  reduce using rule 32 (Add_Expr)
 
 
-state 168
+state 164
 
    31 Add_Expr: Add_Expr . '+' Mul_Expr
    32         | Add_Expr . '-' Mul_Expr
    36 Rel_Expr: Rel_Expr T_LessEqual Add_Expr .
 
-    '+'  shift, and go to state 135
-    '-'  shift, and go to state 136
+    '+'  shift, and go to state 131
+    '-'  shift, and go to state 132
 
     $default  reduce using rule 36 (Rel_Expr)
 
 
-state 169
+state 165
 
    31 Add_Expr: Add_Expr . '+' Mul_Expr
    32         | Add_Expr . '-' Mul_Expr
    37 Rel_Expr: Rel_Expr T_GreaterEqual Add_Expr .
 
-    '+'  shift, and go to state 135
-    '-'  shift, and go to state 136
+    '+'  shift, and go to state 131
+    '-'  shift, and go to state 132
 
     $default  reduce using rule 37 (Rel_Expr)
 
 
-state 170
+state 166
 
    31 Add_Expr: Add_Expr . '+' Mul_Expr
    32         | Add_Expr . '-' Mul_Expr
    34 Rel_Expr: Rel_Expr '<' Add_Expr .
 
-    '+'  shift, and go to state 135
-    '-'  shift, and go to state 136
+    '+'  shift, and go to state 131
+    '-'  shift, and go to state 132
 
     $default  reduce using rule 34 (Rel_Expr)
 
 
-state 171
+state 167
 
    31 Add_Expr: Add_Expr . '+' Mul_Expr
    32         | Add_Expr . '-' Mul_Expr
    35 Rel_Expr: Rel_Expr '>' Add_Expr .
 
-    '+'  shift, and go to state 135
-    '-'  shift, and go to state 136
+    '+'  shift, and go to state 131
+    '-'  shift, and go to state 132
 
     $default  reduce using rule 35 (Rel_Expr)
 
 
-state 172
+state 168
 
    34 Rel_Expr: Rel_Expr . '<' Add_Expr
    35         | Rel_Expr . '>' Add_Expr
@@ -2904,15 +2805,15 @@ state 172
    37         | Rel_Expr . T_GreaterEqual Add_Expr
    39 Eq_Expr: Eq_Expr T_Equal Rel_Expr .
 
-    T_LessEqual     shift, and go to state 137
-    T_GreaterEqual  shift, and go to state 138
-    '<'             shift, and go to state 139
-    '>'             shift, and go to state 140
+    T_LessEqual     shift, and go to state 133
+    T_GreaterEqual  shift, and go to state 134
+    '<'             shift, and go to state 135
+    '>'             shift, and go to state 136
 
     $default  reduce using rule 39 (Eq_Expr)
 
 
-state 173
+state 169
 
    34 Rel_Expr: Rel_Expr . '<' Add_Expr
    35         | Rel_Expr . '>' Add_Expr
@@ -2920,140 +2821,273 @@ state 173
    37         | Rel_Expr . T_GreaterEqual Add_Expr
    40 Eq_Expr: Eq_Expr T_NotEqual Rel_Expr .
 
-    T_LessEqual     shift, and go to state 137
-    T_GreaterEqual  shift, and go to state 138
-    '<'             shift, and go to state 139
-    '>'             shift, and go to state 140
+    T_LessEqual     shift, and go to state 133
+    T_GreaterEqual  shift, and go to state 134
+    '<'             shift, and go to state 135
+    '>'             shift, and go to state 136
 
     $default  reduce using rule 40 (Eq_Expr)
 
 
-state 174
+state 170
 
    39 Eq_Expr: Eq_Expr . T_Equal Rel_Expr
    40        | Eq_Expr . T_NotEqual Rel_Expr
    42 Log_And_Expr: Log_And_Expr T_And Eq_Expr .
 
-    T_Equal     shift, and go to state 141
-    T_NotEqual  shift, and go to state 142
+    T_Equal     shift, and go to state 137
+    T_NotEqual  shift, and go to state 138
 
     $default  reduce using rule 42 (Log_And_Expr)
 
 
-state 175
+state 171
 
    42 Log_And_Expr: Log_And_Expr . T_And Eq_Expr
    44 Log_Or_Expr: Log_Or_Expr T_Or Log_And_Expr .
 
-    T_And  shift, and go to state 143
+    T_And  shift, and go to state 139
 
     $default  reduce using rule 44 (Log_Or_Expr)
 
 
+state 172
+
+  107 Cond: Fully_Spec_Type T_Identifier . T_Equal Assn_Expr
+
+    T_Equal  shift, and go to state 178
+
+
+state 173
+
+  113 Iter_Stmt: T_While '(' Cond ')' . Stmt
+
+    T_Void           shift, and go to state 1
+    T_Bool           shift, and go to state 2
+    T_Int            shift, and go to state 3
+    T_Float          shift, and go to state 4
+    T_Vec2           shift, and go to state 5
+    T_Vec3           shift, and go to state 6
+    T_Vec4           shift, and go to state 7
+    T_Mat2           shift, and go to state 8
+    T_Mat3           shift, and go to state 9
+    T_Mat4           shift, and go to state 10
+    T_In             shift, and go to state 11
+    T_Out            shift, and go to state 12
+    T_Uniform        shift, and go to state 13
+    T_Layout         shift, and go to state 14
+    T_While          shift, and go to state 50
+    T_For            shift, and go to state 51
+    T_If             shift, and go to state 52
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Switch         shift, and go to state 55
+    T_Case           shift, and go to state 56
+    T_Default        shift, and go to state 57
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+    ';'              shift, and go to state 65
+    '{'              shift, and go to state 34
+
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 83
+    Decl                    go to state 84
+    Fn_Proto                go to state 85
+    Fn_Declr                go to state 18
+    Fn_Hdr_With_Param       go to state 19
+    Fn_Hdr                  go to state 20
+    Single_Decl             go to state 21
+    Fully_Spec_Type         go to state 22
+    Layout_Q                go to state 23
+    Type_Q                  go to state 24
+    Single_Type_Q           go to state 25
+    Storage_Q               go to state 26
+    Type_Spec               go to state 86
+    Decl_Stmt               go to state 87
+    Stmt                    go to state 179
+    Simple_Stmt             go to state 89
+    Compd_Stmt              go to state 90
+    Expr_Stmt               go to state 92
+    Select_Stmt             go to state 93
+    Switch_Stmt             go to state 94
+    Case_Label              go to state 95
+    Iter_Stmt               go to state 96
+
+
+state 174
+
+  117 For_Rest_Stmt: Cond . ';'
+  118              | Cond . ';' Expr
+
+    ';'  shift, and go to state 180
+
+
+state 175
+
+  114 Iter_Stmt: T_For '(' For_Init_Stmt For_Rest_Stmt . ')' Stmt
+
+    ')'  shift, and go to state 181
+
+
 state 176
 
-  112 Cond: Fully_Spec_Type T_Identifier . T_Equal Init
+  103 Select_Stmt: T_If '(' Expr ')' . Select_Rest_Stmt
 
-    T_Equal  shift, and go to state 182
+    T_Void           shift, and go to state 1
+    T_Bool           shift, and go to state 2
+    T_Int            shift, and go to state 3
+    T_Float          shift, and go to state 4
+    T_Vec2           shift, and go to state 5
+    T_Vec3           shift, and go to state 6
+    T_Vec4           shift, and go to state 7
+    T_Mat2           shift, and go to state 8
+    T_Mat3           shift, and go to state 9
+    T_Mat4           shift, and go to state 10
+    T_In             shift, and go to state 11
+    T_Out            shift, and go to state 12
+    T_Uniform        shift, and go to state 13
+    T_Layout         shift, and go to state 14
+    T_While          shift, and go to state 50
+    T_For            shift, and go to state 51
+    T_If             shift, and go to state 52
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Switch         shift, and go to state 55
+    T_Case           shift, and go to state 56
+    T_Default        shift, and go to state 57
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+    ';'              shift, and go to state 65
+    '{'              shift, and go to state 34
+
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 83
+    Decl                    go to state 84
+    Fn_Proto                go to state 85
+    Fn_Declr                go to state 18
+    Fn_Hdr_With_Param       go to state 19
+    Fn_Hdr                  go to state 20
+    Single_Decl             go to state 21
+    Fully_Spec_Type         go to state 22
+    Layout_Q                go to state 23
+    Type_Q                  go to state 24
+    Single_Type_Q           go to state 25
+    Storage_Q               go to state 26
+    Type_Spec               go to state 86
+    Decl_Stmt               go to state 87
+    Stmt                    go to state 182
+    Simple_Stmt             go to state 89
+    Compd_Stmt              go to state 90
+    Expr_Stmt               go to state 92
+    Select_Stmt             go to state 93
+    Select_Rest_Stmt        go to state 183
+    Switch_Stmt             go to state 94
+    Case_Label              go to state 95
+    Iter_Stmt               go to state 96
 
 
 state 177
 
-  117 Iter_Stmt: T_While '(' Cond ')' . Stmt
+  108 Switch_Stmt: T_Switch '(' Expr ')' . '{' Switch_Stmt_List '}'
+  109            | T_Switch '(' Expr ')' . '{' '}'
 
-    T_Void           shift, and go to state 1
-    T_Bool           shift, and go to state 2
-    T_Int            shift, and go to state 3
-    T_Float          shift, and go to state 4
-    T_Vec2           shift, and go to state 5
-    T_Vec3           shift, and go to state 6
-    T_Vec4           shift, and go to state 7
-    T_Mat2           shift, and go to state 8
-    T_Mat3           shift, and go to state 9
-    T_Mat4           shift, and go to state 10
-    T_In             shift, and go to state 11
-    T_Out            shift, and go to state 12
-    T_Uniform        shift, and go to state 13
-    T_Layout         shift, and go to state 14
-    T_While          shift, and go to state 53
-    T_For            shift, and go to state 54
-    T_If             shift, and go to state 55
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Switch         shift, and go to state 58
-    T_Case           shift, and go to state 59
-    T_Default        shift, and go to state 60
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
-    ';'              shift, and go to state 68
-    '{'              shift, and go to state 36
-
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 87
-    Decl                    go to state 88
-    Fn_Proto                go to state 89
-    Fn_Declr                go to state 18
-    Fn_Hdr_With_Param       go to state 19
-    Fn_Hdr                  go to state 20
-    Init_Declr_List         go to state 21
-    Single_Decl             go to state 22
-    Fully_Spec_Type         go to state 23
-    Layout_Q                go to state 24
-    Type_Q                  go to state 25
-    Single_Type_Q           go to state 26
-    Storage_Q               go to state 27
-    Type_Spec               go to state 90
-    Type_Spec_Nonarr        go to state 29
-    Decl_Stmt               go to state 91
-    Stmt                    go to state 183
-    Simple_Stmt             go to state 93
-    Compd_Stmt              go to state 94
-    Expr_Stmt               go to state 96
-    Select_Stmt             go to state 97
-    Switch_Stmt             go to state 98
-    Case_Label              go to state 99
-    Iter_Stmt               go to state 100
+    '{'  shift, and go to state 184
 
 
 state 178
 
-  121 For_Rest_Stmt: Cond . ';'
-  122              | Cond . ';' Expr
+  107 Cond: Fully_Spec_Type T_Identifier T_Equal . Assn_Expr
 
-    ';'  shift, and go to state 184
+    T_Void           shift, and go to state 1
+    T_Bool           shift, and go to state 2
+    T_Int            shift, and go to state 3
+    T_Float          shift, and go to state 4
+    T_Vec2           shift, and go to state 5
+    T_Vec3           shift, and go to state 6
+    T_Vec4           shift, and go to state 7
+    T_Mat2           shift, and go to state 8
+    T_Mat3           shift, and go to state 9
+    T_Mat4           shift, and go to state 10
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 185
+    Type_Spec               go to state 107
 
 
 state 179
 
-  118 Iter_Stmt: T_For '(' For_Init_Stmt For_Rest_Stmt . ')' Stmt
+  113 Iter_Stmt: T_While '(' Cond ')' Stmt .
 
-    ')'  shift, and go to state 185
+    $default  reduce using rule 113 (Iter_Stmt)
 
 
 state 180
 
-  108 Select_Stmt: T_If '(' Expr ')' . Select_Rest_Stmt
+  117 For_Rest_Stmt: Cond ';' .
+  118              | Cond ';' . Expr
 
     T_Void           shift, and go to state 1
     T_Bool           shift, and go to state 2
@@ -3065,136 +3099,136 @@ state 180
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_In             shift, and go to state 11
-    T_Out            shift, and go to state 12
-    T_Uniform        shift, and go to state 13
-    T_Layout         shift, and go to state 14
-    T_While          shift, and go to state 53
-    T_For            shift, and go to state 54
-    T_If             shift, and go to state 55
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Switch         shift, and go to state 58
-    T_Case           shift, and go to state 59
-    T_Default        shift, and go to state 60
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
-    ';'              shift, and go to state 68
-    '{'              shift, and go to state 36
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 87
-    Decl                    go to state 88
-    Fn_Proto                go to state 89
-    Fn_Declr                go to state 18
-    Fn_Hdr_With_Param       go to state 19
-    Fn_Hdr                  go to state 20
-    Init_Declr_List         go to state 21
-    Single_Decl             go to state 22
-    Fully_Spec_Type         go to state 23
-    Layout_Q                go to state 24
-    Type_Q                  go to state 25
-    Single_Type_Q           go to state 26
-    Storage_Q               go to state 27
-    Type_Spec               go to state 90
-    Type_Spec_Nonarr        go to state 29
-    Decl_Stmt               go to state 91
-    Stmt                    go to state 186
-    Simple_Stmt             go to state 93
-    Compd_Stmt              go to state 94
-    Expr_Stmt               go to state 96
-    Select_Stmt             go to state 97
-    Select_Rest_Stmt        go to state 187
-    Switch_Stmt             go to state 98
-    Case_Label              go to state 99
-    Iter_Stmt               go to state 100
+    $default  reduce using rule 117 (For_Rest_Stmt)
+
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 186
+    Type_Spec               go to state 107
 
 
 state 181
 
-  113 Switch_Stmt: T_Switch '(' Expr ')' . '{' Switch_Stmt_List '}'
+  114 Iter_Stmt: T_For '(' For_Init_Stmt For_Rest_Stmt ')' . Stmt
 
-    '{'  shift, and go to state 188
+    T_Void           shift, and go to state 1
+    T_Bool           shift, and go to state 2
+    T_Int            shift, and go to state 3
+    T_Float          shift, and go to state 4
+    T_Vec2           shift, and go to state 5
+    T_Vec3           shift, and go to state 6
+    T_Vec4           shift, and go to state 7
+    T_Mat2           shift, and go to state 8
+    T_Mat3           shift, and go to state 9
+    T_Mat4           shift, and go to state 10
+    T_In             shift, and go to state 11
+    T_Out            shift, and go to state 12
+    T_Uniform        shift, and go to state 13
+    T_Layout         shift, and go to state 14
+    T_While          shift, and go to state 50
+    T_For            shift, and go to state 51
+    T_If             shift, and go to state 52
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Switch         shift, and go to state 55
+    T_Case           shift, and go to state 56
+    T_Default        shift, and go to state 57
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+    ';'              shift, and go to state 65
+    '{'              shift, and go to state 34
+
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 83
+    Decl                    go to state 84
+    Fn_Proto                go to state 85
+    Fn_Declr                go to state 18
+    Fn_Hdr_With_Param       go to state 19
+    Fn_Hdr                  go to state 20
+    Single_Decl             go to state 21
+    Fully_Spec_Type         go to state 22
+    Layout_Q                go to state 23
+    Type_Q                  go to state 24
+    Single_Type_Q           go to state 25
+    Storage_Q               go to state 26
+    Type_Spec               go to state 86
+    Decl_Stmt               go to state 87
+    Stmt                    go to state 187
+    Simple_Stmt             go to state 89
+    Compd_Stmt              go to state 90
+    Expr_Stmt               go to state 92
+    Select_Stmt             go to state 93
+    Switch_Stmt             go to state 94
+    Case_Label              go to state 95
+    Iter_Stmt               go to state 96
 
 
 state 182
 
-  112 Cond: Fully_Spec_Type T_Identifier T_Equal . Init
+  104 Select_Rest_Stmt: Stmt . T_Else Stmt
+  105                 | Stmt .
 
-    T_Void           shift, and go to state 1
-    T_Bool           shift, and go to state 2
-    T_Int            shift, and go to state 3
-    T_Float          shift, and go to state 4
-    T_Vec2           shift, and go to state 5
-    T_Vec3           shift, and go to state 6
-    T_Vec4           shift, and go to state 7
-    T_Mat2           shift, and go to state 8
-    T_Mat3           shift, and go to state 9
-    T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_Else  shift, and go to state 188
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 189
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
-    Init                    go to state 190
+    T_Else    [reduce using rule 105 (Select_Rest_Stmt)]
+    $default  reduce using rule 105 (Select_Rest_Stmt)
 
 
 state 183
 
-  117 Iter_Stmt: T_While '(' Cond ')' Stmt .
+  103 Select_Stmt: T_If '(' Expr ')' Select_Rest_Stmt .
 
-    $default  reduce using rule 117 (Iter_Stmt)
+    $default  reduce using rule 103 (Select_Stmt)
 
 
 state 184
 
-  121 For_Rest_Stmt: Cond ';' .
-  122              | Cond ';' . Expr
+  108 Switch_Stmt: T_Switch '(' Expr ')' '{' . Switch_Stmt_List '}'
+  109            | T_Switch '(' Expr ')' '{' . '}'
 
     T_Void           shift, and go to state 1
     T_Bool           shift, and go to state 2
@@ -3206,140 +3240,95 @@ state 184
     T_Mat2           shift, and go to state 8
     T_Mat3           shift, and go to state 9
     T_Mat4           shift, and go to state 10
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
+    T_In             shift, and go to state 11
+    T_Out            shift, and go to state 12
+    T_Uniform        shift, and go to state 13
+    T_Layout         shift, and go to state 14
+    T_While          shift, and go to state 50
+    T_For            shift, and go to state 51
+    T_If             shift, and go to state 52
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Switch         shift, and go to state 55
+    T_Case           shift, and go to state 56
+    T_Default        shift, and go to state 57
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+    ';'              shift, and go to state 65
+    '{'              shift, and go to state 34
+    '}'              shift, and go to state 189
 
-    $default  reduce using rule 121 (For_Rest_Stmt)
-
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 191
-    Type_Spec               go to state 111
-    Type_Spec_Nonarr        go to state 29
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 83
+    Decl                    go to state 84
+    Fn_Proto                go to state 85
+    Fn_Declr                go to state 18
+    Fn_Hdr_With_Param       go to state 19
+    Fn_Hdr                  go to state 20
+    Single_Decl             go to state 21
+    Fully_Spec_Type         go to state 22
+    Layout_Q                go to state 23
+    Type_Q                  go to state 24
+    Single_Type_Q           go to state 25
+    Storage_Q               go to state 26
+    Type_Spec               go to state 86
+    Decl_Stmt               go to state 87
+    Stmt                    go to state 88
+    Simple_Stmt             go to state 89
+    Compd_Stmt              go to state 90
+    Stmt_List               go to state 190
+    Expr_Stmt               go to state 92
+    Select_Stmt             go to state 93
+    Switch_Stmt             go to state 94
+    Switch_Stmt_List        go to state 191
+    Case_Label              go to state 95
+    Iter_Stmt               go to state 96
 
 
 state 185
 
-  118 Iter_Stmt: T_For '(' For_Init_Stmt For_Rest_Stmt ')' . Stmt
+  107 Cond: Fully_Spec_Type T_Identifier T_Equal Assn_Expr .
 
-    T_Void           shift, and go to state 1
-    T_Bool           shift, and go to state 2
-    T_Int            shift, and go to state 3
-    T_Float          shift, and go to state 4
-    T_Vec2           shift, and go to state 5
-    T_Vec3           shift, and go to state 6
-    T_Vec4           shift, and go to state 7
-    T_Mat2           shift, and go to state 8
-    T_Mat3           shift, and go to state 9
-    T_Mat4           shift, and go to state 10
-    T_In             shift, and go to state 11
-    T_Out            shift, and go to state 12
-    T_Uniform        shift, and go to state 13
-    T_Layout         shift, and go to state 14
-    T_While          shift, and go to state 53
-    T_For            shift, and go to state 54
-    T_If             shift, and go to state 55
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Switch         shift, and go to state 58
-    T_Case           shift, and go to state 59
-    T_Default        shift, and go to state 60
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
-    ';'              shift, and go to state 68
-    '{'              shift, and go to state 36
-
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 87
-    Decl                    go to state 88
-    Fn_Proto                go to state 89
-    Fn_Declr                go to state 18
-    Fn_Hdr_With_Param       go to state 19
-    Fn_Hdr                  go to state 20
-    Init_Declr_List         go to state 21
-    Single_Decl             go to state 22
-    Fully_Spec_Type         go to state 23
-    Layout_Q                go to state 24
-    Type_Q                  go to state 25
-    Single_Type_Q           go to state 26
-    Storage_Q               go to state 27
-    Type_Spec               go to state 90
-    Type_Spec_Nonarr        go to state 29
-    Decl_Stmt               go to state 91
-    Stmt                    go to state 192
-    Simple_Stmt             go to state 93
-    Compd_Stmt              go to state 94
-    Expr_Stmt               go to state 96
-    Select_Stmt             go to state 97
-    Switch_Stmt             go to state 98
-    Case_Label              go to state 99
-    Iter_Stmt               go to state 100
+    $default  reduce using rule 107 (Cond)
 
 
 state 186
 
-  109 Select_Rest_Stmt: Stmt . T_Else Stmt
-  110                 | Stmt .
+  118 For_Rest_Stmt: Cond ';' Expr .
 
-    T_Else  shift, and go to state 193
-
-    T_Else    [reduce using rule 110 (Select_Rest_Stmt)]
-    $default  reduce using rule 110 (Select_Rest_Stmt)
+    $default  reduce using rule 118 (For_Rest_Stmt)
 
 
 state 187
 
-  108 Select_Stmt: T_If '(' Expr ')' Select_Rest_Stmt .
+  114 Iter_Stmt: T_For '(' For_Init_Stmt For_Rest_Stmt ')' Stmt .
 
-    $default  reduce using rule 108 (Select_Stmt)
+    $default  reduce using rule 114 (Iter_Stmt)
 
 
 state 188
 
-  113 Switch_Stmt: T_Switch '(' Expr ')' '{' . Switch_Stmt_List '}'
+  104 Select_Rest_Stmt: Stmt T_Else . Stmt
 
     T_Void           shift, and go to state 1
     T_Bool           shift, and go to state 2
@@ -3355,274 +3344,166 @@ state 188
     T_Out            shift, and go to state 12
     T_Uniform        shift, and go to state 13
     T_Layout         shift, and go to state 14
-    T_While          shift, and go to state 53
-    T_For            shift, and go to state 54
-    T_If             shift, and go to state 55
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Switch         shift, and go to state 58
-    T_Case           shift, and go to state 59
-    T_Default        shift, and go to state 60
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
-    ';'              shift, and go to state 68
-    '{'              shift, and go to state 36
+    T_While          shift, and go to state 50
+    T_For            shift, and go to state 51
+    T_If             shift, and go to state 52
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Switch         shift, and go to state 55
+    T_Case           shift, and go to state 56
+    T_Default        shift, and go to state 57
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+    ';'              shift, and go to state 65
+    '{'              shift, and go to state 34
 
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 87
-    Decl                    go to state 88
-    Fn_Proto                go to state 89
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 83
+    Decl                    go to state 84
+    Fn_Proto                go to state 85
     Fn_Declr                go to state 18
     Fn_Hdr_With_Param       go to state 19
     Fn_Hdr                  go to state 20
-    Init_Declr_List         go to state 21
-    Single_Decl             go to state 22
-    Fully_Spec_Type         go to state 23
-    Layout_Q                go to state 24
-    Type_Q                  go to state 25
-    Single_Type_Q           go to state 26
-    Storage_Q               go to state 27
-    Type_Spec               go to state 90
-    Type_Spec_Nonarr        go to state 29
-    Decl_Stmt               go to state 91
-    Stmt                    go to state 92
-    Simple_Stmt             go to state 93
-    Compd_Stmt              go to state 94
-    Stmt_List               go to state 194
-    Expr_Stmt               go to state 96
-    Select_Stmt             go to state 97
-    Switch_Stmt             go to state 98
-    Switch_Stmt_List        go to state 195
-    Case_Label              go to state 99
-    Iter_Stmt               go to state 100
+    Single_Decl             go to state 21
+    Fully_Spec_Type         go to state 22
+    Layout_Q                go to state 23
+    Type_Q                  go to state 24
+    Single_Type_Q           go to state 25
+    Storage_Q               go to state 26
+    Type_Spec               go to state 86
+    Decl_Stmt               go to state 87
+    Stmt                    go to state 192
+    Simple_Stmt             go to state 89
+    Compd_Stmt              go to state 90
+    Expr_Stmt               go to state 92
+    Select_Stmt             go to state 93
+    Switch_Stmt             go to state 94
+    Case_Label              go to state 95
+    Iter_Stmt               go to state 96
 
 
 state 189
 
-   92 Init: Assn_Expr .
+  109 Switch_Stmt: T_Switch '(' Expr ')' '{' '}' .
 
-    $default  reduce using rule 92 (Init)
+    $default  reduce using rule 109 (Switch_Stmt)
 
 
 state 190
 
-  112 Cond: Fully_Spec_Type T_Identifier T_Equal Init .
+  100 Stmt_List: Stmt_List . Stmt
+  110 Switch_Stmt_List: Stmt_List .
 
-    $default  reduce using rule 112 (Cond)
+    T_Void           shift, and go to state 1
+    T_Bool           shift, and go to state 2
+    T_Int            shift, and go to state 3
+    T_Float          shift, and go to state 4
+    T_Vec2           shift, and go to state 5
+    T_Vec3           shift, and go to state 6
+    T_Vec4           shift, and go to state 7
+    T_Mat2           shift, and go to state 8
+    T_Mat3           shift, and go to state 9
+    T_Mat4           shift, and go to state 10
+    T_In             shift, and go to state 11
+    T_Out            shift, and go to state 12
+    T_Uniform        shift, and go to state 13
+    T_Layout         shift, and go to state 14
+    T_While          shift, and go to state 50
+    T_For            shift, and go to state 51
+    T_If             shift, and go to state 52
+    T_Inc            shift, and go to state 53
+    T_Dec            shift, and go to state 54
+    T_Switch         shift, and go to state 55
+    T_Case           shift, and go to state 56
+    T_Default        shift, and go to state 57
+    T_Identifier     shift, and go to state 58
+    T_IntConstant    shift, and go to state 59
+    T_FloatConstant  shift, and go to state 60
+    T_BoolConstant   shift, and go to state 61
+    '('              shift, and go to state 62
+    '+'              shift, and go to state 63
+    '-'              shift, and go to state 64
+    ';'              shift, and go to state 65
+    '{'              shift, and go to state 34
+
+    $default  reduce using rule 110 (Switch_Stmt_List)
+
+    Pri_Expr                go to state 67
+    Post_Expr               go to state 68
+    Fn_Call                 go to state 69
+    Fn_Call_Hdr_No_Param    go to state 70
+    Fn_Call_Hdr_With_Param  go to state 71
+    Fn_Call_Hdr             go to state 72
+    Fn_Ident                go to state 73
+    Un_Expr                 go to state 74
+    Un_Op                   go to state 75
+    Mul_Expr                go to state 76
+    Add_Expr                go to state 77
+    Rel_Expr                go to state 78
+    Eq_Expr                 go to state 79
+    Log_And_Expr            go to state 80
+    Log_Or_Expr             go to state 81
+    Assn_Expr               go to state 82
+    Expr                    go to state 83
+    Decl                    go to state 84
+    Fn_Proto                go to state 85
+    Fn_Declr                go to state 18
+    Fn_Hdr_With_Param       go to state 19
+    Fn_Hdr                  go to state 20
+    Single_Decl             go to state 21
+    Fully_Spec_Type         go to state 22
+    Layout_Q                go to state 23
+    Type_Q                  go to state 24
+    Single_Type_Q           go to state 25
+    Storage_Q               go to state 26
+    Type_Spec               go to state 86
+    Decl_Stmt               go to state 87
+    Stmt                    go to state 143
+    Simple_Stmt             go to state 89
+    Compd_Stmt              go to state 90
+    Expr_Stmt               go to state 92
+    Select_Stmt             go to state 93
+    Switch_Stmt             go to state 94
+    Case_Label              go to state 95
+    Iter_Stmt               go to state 96
 
 
 state 191
 
-  122 For_Rest_Stmt: Cond ';' Expr .
+  108 Switch_Stmt: T_Switch '(' Expr ')' '{' Switch_Stmt_List . '}'
 
-    $default  reduce using rule 122 (For_Rest_Stmt)
+    '}'  shift, and go to state 193
 
 
 state 192
 
-  118 Iter_Stmt: T_For '(' For_Init_Stmt For_Rest_Stmt ')' Stmt .
+  104 Select_Rest_Stmt: Stmt T_Else Stmt .
 
-    $default  reduce using rule 118 (Iter_Stmt)
+    $default  reduce using rule 104 (Select_Rest_Stmt)
 
 
 state 193
 
-  109 Select_Rest_Stmt: Stmt T_Else . Stmt
+  108 Switch_Stmt: T_Switch '(' Expr ')' '{' Switch_Stmt_List '}' .
 
-    T_Void           shift, and go to state 1
-    T_Bool           shift, and go to state 2
-    T_Int            shift, and go to state 3
-    T_Float          shift, and go to state 4
-    T_Vec2           shift, and go to state 5
-    T_Vec3           shift, and go to state 6
-    T_Vec4           shift, and go to state 7
-    T_Mat2           shift, and go to state 8
-    T_Mat3           shift, and go to state 9
-    T_Mat4           shift, and go to state 10
-    T_In             shift, and go to state 11
-    T_Out            shift, and go to state 12
-    T_Uniform        shift, and go to state 13
-    T_Layout         shift, and go to state 14
-    T_While          shift, and go to state 53
-    T_For            shift, and go to state 54
-    T_If             shift, and go to state 55
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Switch         shift, and go to state 58
-    T_Case           shift, and go to state 59
-    T_Default        shift, and go to state 60
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
-    ';'              shift, and go to state 68
-    '{'              shift, and go to state 36
-
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 87
-    Decl                    go to state 88
-    Fn_Proto                go to state 89
-    Fn_Declr                go to state 18
-    Fn_Hdr_With_Param       go to state 19
-    Fn_Hdr                  go to state 20
-    Init_Declr_List         go to state 21
-    Single_Decl             go to state 22
-    Fully_Spec_Type         go to state 23
-    Layout_Q                go to state 24
-    Type_Q                  go to state 25
-    Single_Type_Q           go to state 26
-    Storage_Q               go to state 27
-    Type_Spec               go to state 90
-    Type_Spec_Nonarr        go to state 29
-    Decl_Stmt               go to state 91
-    Stmt                    go to state 196
-    Simple_Stmt             go to state 93
-    Compd_Stmt              go to state 94
-    Expr_Stmt               go to state 96
-    Select_Stmt             go to state 97
-    Switch_Stmt             go to state 98
-    Case_Label              go to state 99
-    Iter_Stmt               go to state 100
-
-
-state 194
-
-  105 Stmt_List: Stmt_List . Stmt
-  114 Switch_Stmt_List: Stmt_List .
-
-    T_Void           shift, and go to state 1
-    T_Bool           shift, and go to state 2
-    T_Int            shift, and go to state 3
-    T_Float          shift, and go to state 4
-    T_Vec2           shift, and go to state 5
-    T_Vec3           shift, and go to state 6
-    T_Vec4           shift, and go to state 7
-    T_Mat2           shift, and go to state 8
-    T_Mat3           shift, and go to state 9
-    T_Mat4           shift, and go to state 10
-    T_In             shift, and go to state 11
-    T_Out            shift, and go to state 12
-    T_Uniform        shift, and go to state 13
-    T_Layout         shift, and go to state 14
-    T_While          shift, and go to state 53
-    T_For            shift, and go to state 54
-    T_If             shift, and go to state 55
-    T_Inc            shift, and go to state 56
-    T_Dec            shift, and go to state 57
-    T_Switch         shift, and go to state 58
-    T_Case           shift, and go to state 59
-    T_Default        shift, and go to state 60
-    T_Identifier     shift, and go to state 61
-    T_IntConstant    shift, and go to state 62
-    T_FloatConstant  shift, and go to state 63
-    T_BoolConstant   shift, and go to state 64
-    '('              shift, and go to state 65
-    '+'              shift, and go to state 66
-    '-'              shift, and go to state 67
-    ';'              shift, and go to state 68
-    '{'              shift, and go to state 36
-
-    $default  reduce using rule 114 (Switch_Stmt_List)
-
-    Pri_Expr                go to state 70
-    Post_Expr               go to state 71
-    Fn_Call                 go to state 72
-    Fn_Call_Hdr_No_Param    go to state 73
-    Fn_Call_Hdr_With_Param  go to state 74
-    Fn_Call_Hdr             go to state 75
-    Fn_Ident                go to state 76
-    Un_Expr                 go to state 77
-    Un_Op                   go to state 78
-    Mul_Expr                go to state 79
-    Add_Expr                go to state 80
-    Rel_Expr                go to state 81
-    Eq_Expr                 go to state 82
-    Log_And_Expr            go to state 83
-    Log_Or_Expr             go to state 84
-    Cond_Expr               go to state 85
-    Assn_Expr               go to state 86
-    Expr                    go to state 87
-    Decl                    go to state 88
-    Fn_Proto                go to state 89
-    Fn_Declr                go to state 18
-    Fn_Hdr_With_Param       go to state 19
-    Fn_Hdr                  go to state 20
-    Init_Declr_List         go to state 21
-    Single_Decl             go to state 22
-    Fully_Spec_Type         go to state 23
-    Layout_Q                go to state 24
-    Type_Q                  go to state 25
-    Single_Type_Q           go to state 26
-    Storage_Q               go to state 27
-    Type_Spec               go to state 90
-    Type_Spec_Nonarr        go to state 29
-    Decl_Stmt               go to state 91
-    Stmt                    go to state 147
-    Simple_Stmt             go to state 93
-    Compd_Stmt              go to state 94
-    Expr_Stmt               go to state 96
-    Select_Stmt             go to state 97
-    Switch_Stmt             go to state 98
-    Case_Label              go to state 99
-    Iter_Stmt               go to state 100
-
-
-state 195
-
-  113 Switch_Stmt: T_Switch '(' Expr ')' '{' Switch_Stmt_List . '}'
-
-    '}'  shift, and go to state 197
-
-
-state 196
-
-  109 Select_Rest_Stmt: Stmt T_Else Stmt .
-
-    $default  reduce using rule 109 (Select_Rest_Stmt)
-
-
-state 197
-
-  113 Switch_Stmt: T_Switch '(' Expr ')' '{' Switch_Stmt_List '}' .
-
-    $default  reduce using rule 113 (Switch_Stmt)
+    $default  reduce using rule 108 (Switch_Stmt)
