@@ -1,18 +1,8 @@
-Nonterminals useless in grammar
-
-   Int_Expr
-
-
 Terminals unused in grammar
 
    T_Return
    T_Break
    T_Continue
-
-
-Rules useless in grammar
-
-  124 Int_Expr: Expr
 
 
 State 182 conflicts: 1 shift/reduce

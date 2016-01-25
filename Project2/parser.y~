@@ -39,6 +39,7 @@ void yyerror(const char *msg); // standard error-handling routine
  *      attributes to your non-terminal symbols.
  */
 %union {
+  void none;
   int integerConstant;
   bool boolConstant;
   float floatConstant;
@@ -89,7 +90,6 @@ void yyerror(const char *msg); // standard error-handling routine
 	SwitchStmt *switchStmt;
 	SwitchStmtError *switchStmtError;
 	Type *type;
-	NamedType *namedType;
 	ArrayType *arrayType;
 }
 
@@ -103,7 +103,6 @@ void yyerror(const char *msg); // standard error-handling routine
 %token   T_Void T_Bool T_Int T_Float
 %token   T_Vec2 T_Vec3 T_Vec4
 %token   T_Mat2 T_Mat3 T_Mat4
-%token   T_FieldSelection
 %token   T_In T_Out
 %token   T_Uniform
 %token   T_Layout
@@ -114,6 +113,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %token   T_Inc T_Dec T_Switch T_Case T_Default T_Mul_Assign T_Div_Assign T_Add_Assign T_Sub_Assign
 
 %token   <identifier> T_Identifier
+%token   <identifier> T_FieldSelection
 %token   <integerConstant> T_IntConstant
 %token   <floatConstant> T_FloatConstant
 %token   <boolConstant> T_BoolConstant
@@ -131,16 +131,18 @@ void yyerror(const char *msg); // standard error-handling routine
  * pp2: You'll need to add many of these of your own.
  */
 
-%type <node> Pri_Expr
-%type <node> Post_Expr
-%type <node> Int_Expr
+%type <ident> Var_Ident
+%type <expr> Pri_Expr
+%type <expr> Post_Expr
+
 %type <node> Fn_Call
 %type <node> Fn_Call_Hdr_No_Param
 %type <node> Fn_Call_Hdr_With_Param
 %type <node> Fn_Call_Hdr
 %type <node> Fn_Ident
-%type <node> Un_Expr
-%type <node> Un_Op
+
+%type <expr> Un_Expr
+%type <operator> Un_Op
 %type <node> Mul_Expr
 %type <node> Add_Expr
 %type <node> Rel_Expr
@@ -150,6 +152,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <node> Assn_Expr
 %type <node> Assn_Oper
 %type <node> Expr
+
 %type <decl> Decl
 %type <node> Fn_Proto
 %type <node> Fn_Declr
@@ -205,22 +208,22 @@ Program   : Trans_Unit             {
                                    }
           ;
 
-Pri_Expr  : T_Identifier {}
-          | T_IntConstant {}
-          | T_FloatConstant {}
-          | T_BoolConstant {}
-          | '(' Expr ')' {}
+Var_Ident : T_Identifier { $$ = new Identifier(@1, $1); }
           ;
 
-Post_Expr : Pri_Expr {}
-          | Fn_Call {}
-          | Post_Expr '.' T_FieldSelection {}
-          | Post_Expr T_Inc {}
-          | Post_Expr T_Dec {}
+Pri_Expr  : Var_Ident { $$ = new FieldAccess(NULL, $1); }
+          | T_IntConstant { $$ = new IntConstant(@1, $1); }
+          | T_FloatConstant { $$ = new FloatConstant(@1, $1); }
+          | T_BoolConstant { $$ = new BoolConstant(@1, $1); }
+          | '(' Expr ')' { $$ = $2; }
           ;
 
-Int_Expr : Expr {}
-         ;
+Post_Expr : Pri_Expr { $$ = $1; }
+          | Fn_Call { $$ = $1; }
+          | Post_Expr '.' T_FieldSelection { $$ = new FieldAccess($1, $3); }
+          | Post_Expr T_Inc { $$ = new PostfixExpr($1, new Operator(@2, "++")); }
+          | Post_Expr T_Dec { $$ = new PostfixExpr($1, new Operator(@2, "--")); }
+          ;
 
 Fn_Call  : Fn_Call_Hdr_No_Param ')' {}
          | Fn_Call_Hdr_With_Param ')' {}
@@ -241,8 +244,8 @@ Fn_Ident : Type_Spec {}
          | Post_Expr {}
          ;
 
-Un_Expr : Post_Expr {}
-        | T_Inc Un_Expr {}
+Un_Expr : Post_Expr { $$ = $1; }
+        | T_Inc Un_Expr { $$ = new CompoundExpr(new Operator(@1, "++"), $2); }
         | T_Dec Un_Expr {}
         | Un_Op Un_Expr {}
         ;
