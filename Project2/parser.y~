@@ -41,6 +41,8 @@ void yyerror(const char *msg); // standard error-handling routine
 %union {
   int integerConstant;
   bool boolConstant;
+  float floatConstant;
+  double doubleConstant;
   char identifier[MaxIdentLen+1]; // +1 for terminating null
 	Node *node;
 	Identifier *ident;
