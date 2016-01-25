@@ -105,7 +105,7 @@ SINGLE_COMMENT    ("//"[^\n]*)
 "mat4"              { return T_Mat4;        }
 "vec2"              { return T_Vec2;        }
 "vec3"     	        { return T_Vec3;        }
-"vec4"     	        { return T_Vec4; 	      }
+"vec4"     	        { return T_Vec4; 	    }
 
 
 
@@ -119,10 +119,10 @@ SINGLE_COMMENT    ("//"[^\n]*)
 "||"                { return T_Or;          }
 "++"                { return T_Inc;         }
 "--"                { return T_Dec;         }
-"+="		    	      { return T_Add_Assign;  }
-"-="		    	      { return T_Sub_Assign;  }
-"*="		    	      { return T_Mul_Assign;  }
-"/="		    	      { return T_Div_Assign;  }
+"+="		    	{ return T_Add_Assign;  }
+"-="		    	{ return T_Sub_Assign;  }
+"*="		    	{ return T_Mul_Assign;  }
+"/="		    	{ return T_Div_Assign;  }
 {OPERATOR}          { return yytext[0];     }
 
  /* -------------------- Constants ------------------------------ */

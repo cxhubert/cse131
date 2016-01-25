@@ -137,7 +137,7 @@ typedef union YYSTYPE
 
   int integerConstant;
   bool boolConstant;
-  char *stringConstant;
+  float floatConstant;
   double doubleConstant;
   char identifier[MaxIdentLen+1]; // +1 for terminating null
 	Node *node;

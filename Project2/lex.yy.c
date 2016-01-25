@@ -1238,7 +1238,7 @@ YY_RULE_SETUP
 case 32:
 YY_RULE_SETUP
 #line 108 "scanner.l"
-{ return T_Vec4; 	      }
+{ return T_Vec4; 	    }
 	YY_BREAK
 /* -------------------- Operators ----------------------------- */
 case 33:

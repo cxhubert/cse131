@@ -211,7 +211,7 @@ typedef union YYSTYPE
 
   int integerConstant;
   bool boolConstant;
-  char *stringConstant;
+  float floatConstant;
   double doubleConstant;
   char identifier[MaxIdentLen+1]; // +1 for terminating null
 	Node *node;
@@ -2602,14 +2602,14 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 506 "parser.y"
-    {  }
+    {/* $$ = $1; */}
     break;
 
   case 127:
 
 /* Line 1455 of yacc.c  */
 #line 507 "parser.y"
-    {  }
+    {/* $$ = $1; */}
     break;
 
   case 128:

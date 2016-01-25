@@ -41,7 +41,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %union {
   int integerConstant;
   bool boolConstant;
-  char *stringConstant;
+  float floatConstant;
   double doubleConstant;
   char identifier[MaxIdentLen+1]; // +1 for terminating null
 	Node *node;
@@ -424,8 +424,8 @@ Type_Spec       : Type_Spec_Nonarr    {}
                 ;
 
 Type_Spec_Nonarr : T_Void { $$ = Type::voidType; }
-                 | T_Float { $$ = Type::floatType; }
-                 | T_Int { $$ = Type::intType; }
+                 | T_Float{ $$ = Type::floatType; }
+                 | T_Int  { $$ = Type::intType; }
                  | T_Bool { $$ = Type::boolType; }
                  | T_Vec2 { $$ = Type::vec2Type; }
                  | T_Vec3 { $$ = Type::vec3Type; }
@@ -503,8 +503,8 @@ Trans_Unit : Trans_Unit Ext_Decl    { }
            | Ext_Decl               { }
            ;
 
-Ext_Decl  : Fn_Def                {  }
-          | Decl                  {  }
+Ext_Decl  : Fn_Def                {/* $$ = $1; */}
+          | Decl                  {/* $$ = $1; */}
           ;
 
 Fn_Def : Fn_Proto Compd_Stmt {}
