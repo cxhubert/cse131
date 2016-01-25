@@ -1,0 +1,4 @@
+
+*** Error line 0.
+*** syntax error
+
