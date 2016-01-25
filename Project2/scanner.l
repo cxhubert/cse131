@@ -21,7 +21,7 @@ using namespace std;
  * preserved between calls to yylex or used outside the scanner.
  */
 
-struct yyltype yylloc;
+//struct yyltype yylloc;
 
 static int curLineNum, curColNum;
 vector<const char*> savedLines;
