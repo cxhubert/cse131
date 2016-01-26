@@ -142,7 +142,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <node> Fn_Ident
 
 %type <expr> Un_Expr
-%type <operator> Un_Op
+%type <_operator> Un_Op
 %type <expr> Mul_Expr
 %type <expr> Add_Expr
 %type <expr> Rel_Expr
@@ -150,7 +150,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <expr> Log_And_Expr
 %type <expr> Log_Or_Expr
 %type <expr> Assn_Expr
-%type <operator> Assn_Oper
+%type <_operator> Assn_Oper
 %type <expr> Expr
 
 %type <decl> Decl
@@ -250,23 +250,23 @@ Un_Expr : Post_Expr { $$ = $1; }
         | Un_Op Un_Expr { $$ = new ArithmeticExpr($1,$2); }
         ;
 
-Un_Op : '+' { $$ = new Operator(@1,'+'); }
-      | '-' { $$ = new Operator(@1,'-'); }
+Un_Op : '+' { $$ = new Operator(@1,"+"); }
+      | '-' { $$ = new Operator(@1,"-"); }
       ;
 
 Mul_Expr    : Un_Expr { $$ = $1; }
-            | Mul_Expr '*' Un_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,'*'),$3); }
-            | Mul_Expr '/' Un_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,'/'),$3); }
+            | Mul_Expr '*' Un_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,"*"),$3); }
+            | Mul_Expr '/' Un_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,"/"),$3); }
             ;
 
-Add_Expr    : Mul_Expr { $$ = $1}
-            | Add_Expr '+' Mul_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,'+'),$3); }
-            | Add_Expr '-' Mul_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,'-'),$3); }
+Add_Expr    : Mul_Expr { $$ = $1; }
+            | Add_Expr '+' Mul_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,"+"),$3); }
+            | Add_Expr '-' Mul_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,"-"),$3); }
             ;
 
 Rel_Expr    : Add_Expr { $$ = $1; }
-            | Rel_Expr '<' Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,'<'),$3); }
-            | Rel_Expr '>' Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,'>'),$3); }
+            | Rel_Expr '<' Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,"<"),$3); }
+            | Rel_Expr '>' Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,">"),$3); }
             | Rel_Expr T_LessEqual Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,"<="),$3); }
             | Rel_Expr T_GreaterEqual Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,">"),$3); }
             ;
@@ -288,7 +288,7 @@ Assn_Expr : Log_Or_Expr { $$ = $1; }
           | Un_Expr Assn_Oper Assn_Expr { $$ = new AssignExpr($1,$2,$3); }
           ;
 
-Assn_Oper : '=' { $$ = new Operator(@1,'='); }
+Assn_Oper : '=' { $$ = new Operator(@1,"="); }
           | T_Mul_Assign { $$ = new Operator(@1,"*="); }
           | T_Div_Assign { $$ = new Operator(@1,"/="); }
           | T_Add_Assign { $$ = new Operator(@1,"+="); }
