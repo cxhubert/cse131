@@ -32,6 +32,25 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/* "%code requires" blocks.  */
+
+/* Line 1676 of yacc.c  */
+#line 42 "parser.y"
+
+  struct FnHdr {
+    Identifier *name;
+    Type *type;
+  };
+
+  struct FnHdrWithParams {
+    struct FnHdr header;
+    List<VarDecl*> *params;
+  };
+
+
+
+/* Line 1676 of yacc.c  */
+#line 54 "y.tab.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -49,34 +68,34 @@
      T_Mat2 = 265,
      T_Mat3 = 266,
      T_Mat4 = 267,
-     T_FieldSelection = 268,
-     T_In = 269,
-     T_Out = 270,
-     T_Uniform = 271,
-     T_Layout = 272,
-     T_LessEqual = 273,
-     T_GreaterEqual = 274,
-     T_Equal = 275,
-     T_NotEqual = 276,
-     T_And = 277,
-     T_Or = 278,
-     T_While = 279,
-     T_For = 280,
-     T_If = 281,
-     T_Else = 282,
-     T_Return = 283,
-     T_Break = 284,
-     T_Continue = 285,
-     T_Inc = 286,
-     T_Dec = 287,
-     T_Switch = 288,
-     T_Case = 289,
-     T_Default = 290,
-     T_Mul_Assign = 291,
-     T_Div_Assign = 292,
-     T_Add_Assign = 293,
-     T_Sub_Assign = 294,
-     T_Identifier = 295,
+     T_In = 268,
+     T_Out = 269,
+     T_Uniform = 270,
+     T_Layout = 271,
+     T_LessEqual = 272,
+     T_GreaterEqual = 273,
+     T_Equal = 274,
+     T_NotEqual = 275,
+     T_And = 276,
+     T_Or = 277,
+     T_While = 278,
+     T_For = 279,
+     T_If = 280,
+     T_Else = 281,
+     T_Return = 282,
+     T_Break = 283,
+     T_Continue = 284,
+     T_Inc = 285,
+     T_Dec = 286,
+     T_Switch = 287,
+     T_Case = 288,
+     T_Default = 289,
+     T_Mul_Assign = 290,
+     T_Div_Assign = 291,
+     T_Add_Assign = 292,
+     T_Sub_Assign = 293,
+     T_Identifier = 294,
+     T_FieldSelection = 295,
      T_IntConstant = 296,
      T_FloatConstant = 297,
      T_BoolConstant = 298
@@ -93,34 +112,34 @@
 #define T_Mat2 265
 #define T_Mat3 266
 #define T_Mat4 267
-#define T_FieldSelection 268
-#define T_In 269
-#define T_Out 270
-#define T_Uniform 271
-#define T_Layout 272
-#define T_LessEqual 273
-#define T_GreaterEqual 274
-#define T_Equal 275
-#define T_NotEqual 276
-#define T_And 277
-#define T_Or 278
-#define T_While 279
-#define T_For 280
-#define T_If 281
-#define T_Else 282
-#define T_Return 283
-#define T_Break 284
-#define T_Continue 285
-#define T_Inc 286
-#define T_Dec 287
-#define T_Switch 288
-#define T_Case 289
-#define T_Default 290
-#define T_Mul_Assign 291
-#define T_Div_Assign 292
-#define T_Add_Assign 293
-#define T_Sub_Assign 294
-#define T_Identifier 295
+#define T_In 268
+#define T_Out 269
+#define T_Uniform 270
+#define T_Layout 271
+#define T_LessEqual 272
+#define T_GreaterEqual 273
+#define T_Equal 274
+#define T_NotEqual 275
+#define T_And 276
+#define T_Or 277
+#define T_While 278
+#define T_For 279
+#define T_If 280
+#define T_Else 281
+#define T_Return 282
+#define T_Break 283
+#define T_Continue 284
+#define T_Inc 285
+#define T_Dec 286
+#define T_Switch 287
+#define T_Case 288
+#define T_Default 289
+#define T_Mul_Assign 290
+#define T_Div_Assign 291
+#define T_Add_Assign 292
+#define T_Sub_Assign 293
+#define T_Identifier 294
+#define T_FieldSelection 295
 #define T_IntConstant 296
 #define T_FloatConstant 297
 #define T_BoolConstant 298
@@ -133,7 +152,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 41 "parser.y"
+#line 54 "parser.y"
 
   int integerConstant;
   bool boolConstant;
@@ -185,13 +204,14 @@ typedef union YYSTYPE
 	SwitchStmt *switchStmt;
 	SwitchStmtError *switchStmtError;
 	Type *type;
-	NamedType *namedType;
 	ArrayType *arrayType;
+  struct FnHdr fnHdr;
+  struct FnHdrWithParams fnHdrWithParams;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 195 "y.tab.h"
+#line 215 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -200,4 +220,18 @@ typedef union YYSTYPE
 
 extern YYSTYPE yylval;
 
+#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+typedef struct YYLTYPE
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+} YYLTYPE;
+# define yyltype YYLTYPE /* obsolescent; will be withdrawn */
+# define YYLTYPE_IS_DECLARED 1
+# define YYLTYPE_IS_TRIVIAL 1
+#endif
+
+extern YYLTYPE yylloc;
 

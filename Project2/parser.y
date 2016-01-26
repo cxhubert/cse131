@@ -38,8 +38,20 @@ void yyerror(const char *msg); // standard error-handling routine
  * pp2: You will need to add new fields to this union as you add different
  *      attributes to your non-terminal symbols.
  */
+
+%code requires {
+  struct FnHdr {
+    Identifier *name;
+    Type *type;
+  };
+
+  struct FnHdrWithParams {
+    struct FnHdr header;
+    List<VarDecl*> *params;
+  };
+}
+
 %union {
-  void none;
   int integerConstant;
   bool boolConstant;
   float floatConstant;
@@ -91,6 +103,8 @@ void yyerror(const char *msg); // standard error-handling routine
 	SwitchStmtError *switchStmtError;
 	Type *type;
 	ArrayType *arrayType;
+  struct FnHdr fnHdr;
+  struct FnHdrWithParams fnHdrWithParams;
 }
 
 
@@ -135,7 +149,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <expr> Pri_Expr
 %type <expr> Post_Expr
 
-%type <node> Fn_Call
+%type <call> Fn_Call
 %type <node> Fn_Call_Hdr_No_Param
 %type <node> Fn_Call_Hdr_With_Param
 %type <node> Fn_Call_Hdr
@@ -151,24 +165,25 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <node> Log_Or_Expr
 %type <node> Assn_Expr
 %type <node> Assn_Oper
-%type <node> Expr
+%type <expr> Expr
 
 %type <decl> Decl
 %type <node> Fn_Proto
 %type <node> Fn_Declr
-%type <node> Fn_Hdr
-%type <node> Fn_Hdr_With_Param
-%type <node> Param_Declr
-%type <node> Param_Decl
-%type <node> Single_Decl
-%type <node> Fully_Spec_Type
+%type <fnHdr> Fn_Hdr
+%type <fnHdrWithParams> Fn_Hdr_With_Param
+%type <varDecl> Param_Declr
+%type <varDecl> Param_Decl
+%type <varDecl> Single_Decl
+%type <type> Fully_Spec_Type
+
 %type <node> Layout_Q
 %type <node> Layout_ID_List
 %type <node> Layout_ID
 %type <node> Type_Q
 %type <node> Single_Type_Q
 %type <node> Storage_Q
-%type <node> Type_Spec
+%type <type> Type_Spec
 %type <node> Decl_Stmt
 %type <node> Stmt
 %type <node> Simple_Stmt
@@ -220,7 +235,7 @@ Pri_Expr  : Var_Ident { $$ = new FieldAccess(NULL, $1); }
 
 Post_Expr : Pri_Expr { $$ = $1; }
           | Fn_Call { $$ = $1; }
-          | Post_Expr '.' T_FieldSelection { $$ = new FieldAccess($1, $3); }
+          | Post_Expr '.' T_FieldSelection { $$ = new FieldAccess($1, new Identifier(@3, $3)); }
           | Post_Expr T_Inc { $$ = new PostfixExpr($1, new Operator(@2, "++")); }
           | Post_Expr T_Dec { $$ = new PostfixExpr($1, new Operator(@2, "--")); }
           ;
@@ -245,7 +260,7 @@ Fn_Ident : Type_Spec {}
          ;
 
 Un_Expr : Post_Expr { $$ = $1; }
-        | T_Inc Un_Expr { $$ = new CompoundExpr(new Operator(@1, "++"), $2); }
+        | T_Inc Un_Expr { $$ = new ArithmeticExpr(new Operator(@1, "++"), $2); }
         | T_Dec Un_Expr {}
         | Un_Op Un_Expr {}
         ;
@@ -298,34 +313,36 @@ Assn_Oper : '=' {}
 Expr : Assn_Expr {}
      ;
 
-Decl : Fn_Proto ';' {}
-     | Single_Decl ';' {}
+Decl : Fn_Proto ';' { $$ = $1; }
+     | Single_Decl ';' { $$ = $1; }
      | Type_Q T_Identifier ';' {}
      ;
 
 
-Fn_Proto : Fn_Declr ')' {}
+Fn_Proto : Fn_Declr ')' { $$ = $1; }
          ;
 
-Fn_Declr : Fn_Hdr {}
-         | Fn_Hdr_With_Param {}
+Fn_Declr : Fn_Hdr { $$ = new FnDecl($1.name, $1.type, new List<VarDecl*>()); }
+         | Fn_Hdr_With_Param { $$ = new FnDecl($1.header.name, $1.header.type, $1.params); }
          ;
 
-Fn_Hdr_With_Param : Fn_Hdr Param_Decl {}
-                   | Fn_Hdr_With_Param ',' Param_Decl {}
+Fn_Hdr_With_Param : Fn_Hdr Param_Decl { $$.header = $1;
+                                        ($$.params = new List<VarDecl*>())->append($2); }
+                   | Fn_Hdr_With_Param ',' Param_Decl { $$.params->append($3); }
                    ;
 
-Fn_Hdr : Fully_Spec_Type T_Identifier '(' {}
+Fn_Hdr : Fully_Spec_Type T_Identifier '(' { $$.name = new Identifier(@2, $2);
+                                            $$.type = $1; }
        ;
 
-Param_Declr : Type_Spec T_Identifier {}
+Param_Declr : Type_Spec T_Identifier { $$ = new VarDecl(new Identifier(@2, $2), $1); }
             ;
 
-Param_Decl : Param_Declr {}
-           | Type_Spec {}
+Param_Decl : Param_Declr { $$ = $1; }
+           | Type_Spec { $$ = new VarDecl(NULL, $1); }
            ;
 
-Single_Decl : Fully_Spec_Type T_Identifier {}
+Single_Decl : Fully_Spec_Type T_Identifier { $$ = new VarDecl(new Identifier(@2, $2), $1); }
             ;
 
 Fully_Spec_Type : Type_Spec { $$ = $1; }
