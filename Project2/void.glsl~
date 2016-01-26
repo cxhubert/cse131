@@ -6,6 +6,7 @@ void main(int argc) {
       in vec3 v;
       v = vec3(1, 2, 3);
       v++;
+      out v;
       if (true && false || 0 && foo) {
         print(666);
       }

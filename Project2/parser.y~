@@ -240,10 +240,12 @@ void yyerror(const char *msg); // standard error-handling routine
 
 
 Program   : Trans_Unit             {
+                                  /*
                                       @1;
                                       Program *program = new Program($1);
                                       if (ReportError::NumErrors() == 0)
                                           program->Print(0);
+                                          */
                                    }
           ;
 
