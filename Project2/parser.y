@@ -143,15 +143,15 @@ void yyerror(const char *msg); // standard error-handling routine
 
 %type <expr> Un_Expr
 %type <operator> Un_Op
-%type <node> Mul_Expr
-%type <node> Add_Expr
-%type <node> Rel_Expr
-%type <node> Eq_Expr
-%type <node> Log_And_Expr
-%type <node> Log_Or_Expr
-%type <node> Assn_Expr
-%type <node> Assn_Oper
-%type <node> Expr
+%type <expr> Mul_Expr
+%type <expr> Add_Expr
+%type <expr> Rel_Expr
+%type <expr> Eq_Expr
+%type <expr> Log_And_Expr
+%type <expr> Log_Or_Expr
+%type <expr> Assn_Expr
+%type <operator> Assn_Oper
+%type <expr> Expr
 
 %type <decl> Decl
 %type <node> Fn_Proto
@@ -245,57 +245,57 @@ Fn_Ident : Type_Spec {}
          ;
 
 Un_Expr : Post_Expr { $$ = $1; }
-        | T_Inc Un_Expr { $$ = new CompoundExpr(new Operator(@1, "++"), $2); }
-        | T_Dec Un_Expr {}
-        | Un_Op Un_Expr {}
+        | T_Inc Un_Expr { $$ = new ArithmeticExpr(new Operator(@1, "++"), $2); }
+        | T_Dec Un_Expr { $$ = new ArithmeticExpr(new Operator(@1, "--"),$2); }
+        | Un_Op Un_Expr { $$ = new ArithmeticExpr($1,$2); }
         ;
 
-Un_Op : '+' {}
-      | '-' {}
+Un_Op : '+' { $$ = new Operator(@1,'+'); }
+      | '-' { $$ = new Operator(@1,'-'); }
       ;
 
-Mul_Expr    : Un_Expr {}
-            | Mul_Expr '*' Un_Expr {}
-            | Mul_Expr '/' Un_Expr {}
+Mul_Expr    : Un_Expr { $$ = $1; }
+            | Mul_Expr '*' Un_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,'*'),$3); }
+            | Mul_Expr '/' Un_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,'/'),$3); }
             ;
 
-Add_Expr    : Mul_Expr {}
-            | Add_Expr '+' Mul_Expr {}
-            | Add_Expr '-' Mul_Expr {}
+Add_Expr    : Mul_Expr { $$ = $1}
+            | Add_Expr '+' Mul_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,'+'),$3); }
+            | Add_Expr '-' Mul_Expr { $$ = new ArithmeticExpr($1,new Operator(@2,'-'),$3); }
             ;
 
-Rel_Expr    : Add_Expr {}
-            | Rel_Expr '<' Add_Expr {}
-            | Rel_Expr '>' Add_Expr {}
-            | Rel_Expr T_LessEqual Add_Expr {}
-            | Rel_Expr T_GreaterEqual Add_Expr {}
+Rel_Expr    : Add_Expr { $$ = $1; }
+            | Rel_Expr '<' Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,'<'),$3); }
+            | Rel_Expr '>' Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,'>'),$3); }
+            | Rel_Expr T_LessEqual Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,"<="),$3); }
+            | Rel_Expr T_GreaterEqual Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,">"),$3); }
             ;
 
-Eq_Expr    : Rel_Expr    {}
-           | Eq_Expr T_Equal Rel_Expr {}
-           | Eq_Expr T_NotEqual Rel_Expr {}
+Eq_Expr    : Rel_Expr    { $$ = $1; }
+           | Eq_Expr T_Equal Rel_Expr { $$ = new EqualityExpr($1,new Operator(@2,"=="),$3); }
+           | Eq_Expr T_NotEqual Rel_Expr { $$ = new EqualityExpr($1,new Operator(@2,"!="),$3); }
            ;
 
-Log_And_Expr : Eq_Expr {}
-             | Log_And_Expr T_And Eq_Expr {}
+Log_And_Expr : Eq_Expr { $$ = $1; }
+             | Log_And_Expr T_And Eq_Expr { $$ = new LogicalExpr($1,new Operator(@2,"&&"),$3); }
              ;
 
-Log_Or_Expr : Log_And_Expr    {}
-            | Log_Or_Expr T_Or Log_And_Expr {}
+Log_Or_Expr : Log_And_Expr    { $$ = $1; }
+            | Log_Or_Expr T_Or Log_And_Expr { $$ = new LogicalExpr($1,new Operator(@2,"||"),$3); }
             ;
 
-Assn_Expr : Log_Or_Expr {}
-          | Un_Expr Assn_Oper Assn_Expr {}
+Assn_Expr : Log_Or_Expr { $$ = $1; }
+          | Un_Expr Assn_Oper Assn_Expr { $$ = new AssignExpr($1,$2,$3); }
           ;
 
-Assn_Oper : '=' {}
-          | T_Mul_Assign {}
-          | T_Div_Assign {}
-          | T_Add_Assign {}
-          | T_Sub_Assign {}
+Assn_Oper : '=' { $$ = new Operator(@1,'='); }
+          | T_Mul_Assign { $$ = new Operator(@1,"*="); }
+          | T_Div_Assign { $$ = new Operator(@1,"/="); }
+          | T_Add_Assign { $$ = new Operator(@1,"+="); }
+          | T_Sub_Assign { $$ = new Operator(@1,"-="); }
           ;
 
-Expr : Assn_Expr {}
+Expr : Assn_Expr { $$ = $1; }
      ;
 
 Decl : Fn_Proto ';' {}
