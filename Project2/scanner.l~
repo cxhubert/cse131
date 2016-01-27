@@ -95,7 +95,11 @@ SINGLE_COMMENT    ("//"[^\n]*)
 "switch"            { return T_Switch;      }
 "case"              { return T_Case;        }
 "default"           { return T_Default;     }
+"uniform"           { return T_Uniform;     }
+"layout"   	        { return T_Layout;      }
 "continue"          { return T_Continue;    }
+"in"       	        { return T_In;          }
+"out"      	        { return T_Out;         }
 "mat2"              { return T_Mat2;        }
 "mat3"              { return T_Mat3;        }
 "mat4"              { return T_Mat4;        }

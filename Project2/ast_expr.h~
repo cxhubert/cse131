@@ -79,7 +79,6 @@ class VarExpr : public Expr
 { 
   protected: 
      Identifier *id; 
-
   public: 
      VarExpr(yyltype loc, Identifier *ident); 
      const char *GetPrintNameForNode() { return "VarExpr"; } 

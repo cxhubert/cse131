@@ -175,13 +175,6 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <ident> Var_Ident
 %type <expr> Pri_Expr
 %type <expr> Post_Expr
-
-%type <call> Fn_Call
-%type <ident> Fn_Call_Hdr_No_Param
-%type <fnCallHdrWithParams> Fn_Call_Hdr_With_Param
-%type <ident> Fn_Call_Hdr
-%type <ident> Fn_Ident
-
 %type <expr> Un_Expr
 %type <opt> Un_Op
 %type <expr> Mul_Expr
@@ -193,7 +186,6 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <expr> Assn_Expr
 %type <opt> Assn_Oper
 %type <expr> Expr
-
 %type <decl> Decl
 %type <varDecl> VarDecl
 %type <fnDecl> Fn_Proto
@@ -203,15 +195,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <varDecl> Param_Declr
 %type <varDecl> Param_Decl
 %type <varDecl> Single_Decl
-%type <type> Fully_Spec_Type
-
-%type <node> Layout_Q
-%type <node> Layout_ID_List
-%type <node> Layout_ID
-%type <node> Type_Q
-%type <node> Single_Type_Q
-%type <node> Storage_Q
-%type <stringConstant> Type_Spec
+%type <type> Type_Spec
 %type <stmt> Stmt
 %type <stmt> Simple_Stmt
 %type <stmt> Compd_Stmt
@@ -240,19 +224,17 @@ void yyerror(const char *msg); // standard error-handling routine
 
 
 Program   : Trans_Unit             {
-                                  /*
                                       @1;
                                       Program *program = new Program($1);
                                       if (ReportError::NumErrors() == 0)
                                           program->Print(0);
-                                          */
                                    }
           ;
 
 Var_Ident : T_Identifier { $$ = new Identifier(@1, $1); }
           ;
 
-Pri_Expr  : Var_Ident { $$ = new FieldAccess(NULL, $1); }
+Pri_Expr  : Var_Ident { $$ = new VarExpr(@1, $1); }
           | T_IntConstant { $$ = new IntConstant(@1, $1); }
           | T_FloatConstant { $$ = new FloatConstant(@1, $1); }
           | T_BoolConstant { $$ = new BoolConstant(@1, $1); }
@@ -260,31 +242,10 @@ Pri_Expr  : Var_Ident { $$ = new FieldAccess(NULL, $1); }
           ;
 
 Post_Expr : Pri_Expr { $$ = $1; }
-          | Fn_Call { $$ = $1; }
           | Post_Expr '.' T_FieldSelection { $$ = new FieldAccess($1, new Identifier(@3, $3)); }
           | Post_Expr T_Inc { $$ = new PostfixExpr($1, new Operator(@2, "++")); }
           | Post_Expr T_Dec { $$ = new PostfixExpr($1, new Operator(@2, "--")); }
           ;
-
-Fn_Call  : Fn_Call_Hdr_No_Param ')' { $$ = new Call(@1, NULL, $1, new List<Expr*>()); }
-         | Fn_Call_Hdr_With_Param ')' { $$ = new Call(@1, NULL, $1.name, $1.params); }
-         ;
-
-Fn_Call_Hdr_No_Param  : Fn_Call_Hdr T_Void { $$ = $1; }
-                      | Fn_Call_Hdr { $$ = $1; }
-                      ;
-
-Fn_Call_Hdr_With_Param : Fn_Call_Hdr Assn_Expr { ($$.params = new List<Expr*>())->Append($2); 
-                                                  $$.name = $1; }
-                       | Fn_Call_Hdr_With_Param ',' Assn_Expr { $$ = $1; $$.params->Append($3); }
-                       ;
-
-Fn_Call_Hdr : Fn_Ident '(' { $$ = $1; }
-            ;
-
-Fn_Ident : Type_Spec { $$ = new Identifier(@1, $1); }
-         | Var_Ident { $$ = $1; }
-         ;
 
 Un_Expr : Post_Expr { $$ = $1; }
         | T_Inc Un_Expr { $$ = new ArithmeticExpr(new Operator(@1, "++"), $2); }
@@ -342,7 +303,6 @@ Expr : Assn_Expr { $$ = $1; }
 
 Decl : Fn_Proto ';' { $$ = $1; }
      | VarDecl { $$ = $1; }
-     | Type_Q T_Identifier ';' {}
      ;
 
 VarDecl : Single_Decl ';' { $$ = $1; }
@@ -360,57 +320,31 @@ Fn_Hdr_With_Param : Fn_Hdr Param_Decl { $$.header = $1;
                    | Fn_Hdr_With_Param ',' Param_Decl { $$ = $1; $$.params->Append($3); }
                    ;
 
-Fn_Hdr : Fully_Spec_Type T_Identifier '(' { $$.name = new Identifier(@2, $2);
+Fn_Hdr : Type_Spec T_Identifier '(' { $$.name = new Identifier(@2, $2);
                                             $$.type = $1; }
        ;
 
-Param_Declr : Type_Spec T_Identifier { $$ = new VarDecl(new Identifier(@2, $2), new Type($1)); }
+Param_Declr : Type_Spec T_Identifier { $$ = new VarDecl(new Identifier(@2, $2), $1); }
             ;
 
 Param_Decl : Param_Declr { $$ = $1; }
-           | Type_Spec { $$ = new VarDecl(new Identifier(@1, ""), new Type($1)); }
+           | Type_Spec { $$ = new VarDecl(new Identifier(@1, ""), $1); }
            ;
 
-Single_Decl : Fully_Spec_Type T_Identifier { $$ = new VarDecl(new Identifier(@2, $2), $1); }
+Single_Decl : Type_Spec T_Identifier { $$ = new VarDecl(new Identifier(@2, $2), $1); }
             ;
 
-Fully_Spec_Type : Type_Spec { $$ = new Type($1); }
-                | Type_Q Type_Spec { $$ = new Type($2); }
-                ;
-
-Layout_Q : T_Layout '(' Layout_ID_List ')' {}
-         ;
-
-Layout_ID_List : Layout_ID {}
-               ;
-
-Layout_ID : T_Identifier '=' T_IntConstant {}
+Type_Spec : T_Void { $$ = Type::voidType; }
+          | T_Float{ $$ = Type::floatType; }
+          | T_Int  { $$ = Type::intType; }
+          | T_Bool { $$ = Type::boolType; }
+          | T_Vec2 { $$ = Type::vec2Type; }
+          | T_Vec3 { $$ = Type::vec3Type; }
+          | T_Vec4 { $$ = Type::vec4Type; }
+          | T_Mat2 { $$ = Type::mat2Type; }
+          | T_Mat3 { $$ = Type::mat3Type; }
+          | T_Mat4 { $$ = Type::mat4Type; }
           ;
-
-Type_Q : Single_Type_Q {}
-       | Type_Q Single_Type_Q {}
-       ;
-
-Single_Type_Q   : Storage_Q {}
-                | Layout_Q     {}
-                ;
-
-Storage_Q       : T_In {}
-                | T_Out {}
-                | T_Uniform {}
-                ;
-
-Type_Spec :        T_Void { $$ = "void"; }
-                 | T_Float{ $$ = "float"; }
-                 | T_Int  { $$ = "int"; }
-                 | T_Bool { $$ = "bool"; }
-                 | T_Vec2 { $$ = "vec2"; }
-                 | T_Vec3 { $$ = "vec3"; }
-                 | T_Vec4 { $$ = "vec4"; }
-                 | T_Mat2 { $$ = "mat2"; }
-                 | T_Mat3 { $$ = "mat3"; }
-                 | T_Mat4 { $$ = "mat4"; }
-                 ;
 
 Stmt        : Compd_Stmt { $$ = $1; }
             | Simple_Stmt { $$ = $1; }
@@ -447,10 +381,10 @@ Select_Rest_Stmt : Stmt T_Else Stmt { $$.body = $1; $$.elseBody = $3; }
                  ;
 
 Cond    : Expr { $$ = $1; }
-        | Fully_Spec_Type T_Identifier T_Equal Assn_Expr { 
-                    FieldAccess *wrapper = new FieldAccess(NULL, new Identifier(@2, $2));
+        | Type_Spec T_Identifier T_Equal Assn_Expr { 
+                    Identifier *rhs = new VarExpr(@2, new Identifier(@2, $2));
                     Operator *op = new Operator(@3, "==");
-                    $$ = new AssignExpr(wrapper, op, $4); }
+                    $$ = new AssignExpr(rhs, op, $4); }
         ;
 
 Switch_Stmt : T_Switch '(' Expr ')' '{' Stmt_List '}' {}
@@ -469,7 +403,7 @@ Iter_Stmt   : T_While '(' Cond ')' Stmt { $$ = new WhileStmt($3, $5); }
 For_Init_Stmt   : Expr_Stmt { $$ = $1; }
                 ;
 
-For_Rest_Stmt   : Cond ';' { $$.test = $1; }
+For_Rest_Stmt   : Cond ';' { $$.test = $1; $$.step = NULL; }
                 | Cond ';' Expr { $$.test = $1; $$.step = $3; }
                 ;
 
