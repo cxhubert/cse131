@@ -382,7 +382,7 @@ Select_Rest_Stmt : Stmt T_Else Stmt { $$.body = $1; $$.elseBody = $3; }
 
 Cond    : Expr { $$ = $1; }
         | Type_Spec T_Identifier T_Equal Assn_Expr { 
-                    Identifier *rhs = new VarExpr(@2, new Identifier(@2, $2));
+                    VarExpr *rhs = new VarExpr(@2, new Identifier(@2, $2));
                     Operator *op = new Operator(@3, "==");
                     $$ = new AssignExpr(rhs, op, $4); }
         ;

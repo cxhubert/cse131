@@ -40,6 +40,7 @@ static void DoBeforeEachAction();
  */
 %s N
 %x COPY COMM
+%x FIELD
 %option stack
 
 /* Definitions
@@ -101,9 +102,7 @@ SINGLE_COMMENT    ("//"[^\n]*)
 "mat4"              { return T_Mat4;        }
 "vec2"              { return T_Vec2;        }
 "vec3"     	        { return T_Vec3;        }
-"vec4"     	        { return T_Vec4; 	    }
-
-
+"vec4"     	        { return T_Vec4; 	      }
 
 
  /* -------------------- Operators ----------------------------- */
@@ -115,11 +114,19 @@ SINGLE_COMMENT    ("//"[^\n]*)
 "||"                { return T_Or;          }
 "++"                { return T_Inc;         }
 "--"                { return T_Dec;         }
-"+="		    	{ return T_Add_Assign;  }
-"-="		    	{ return T_Sub_Assign;  }
-"*="		    	{ return T_Mul_Assign;  }
-"/="		    	{ return T_Div_Assign;  }
+"+="		    	      { return T_Add_Assign;  }
+"-="		    	      { return T_Sub_Assign;  }
+"*="		    	      { return T_Mul_Assign;  }
+"/="		    	      { return T_Div_Assign;  }
+"."                 { BEGIN(FIELD); return yytext[0]; }
+<FIELD>{IDENTIFIER} { BEGIN(N); if (strlen(yytext) > MaxIdentLen)
+                         ReportError::LongIdentifier(&yylloc, yytext);
+                       strncpy(yylval.identifier, yytext, MaxIdentLen);
+                       yylval.identifier[MaxIdentLen] = '\0';
+                       return T_FieldSelection; }
+<FIELD>.            { ReportError::UnrecogChar(&yylloc, yytext[0]); } 
 {OPERATOR}          { return yytext[0];     }
+
 
  /* -------------------- Constants ------------------------------ */
 "true"|"false"      { yylval.boolConstant = (yytext[0] == 't');
