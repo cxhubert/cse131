@@ -357,7 +357,7 @@ Simple_Stmt : Expr_Stmt { $$ = $1; }
             | Iter_Stmt { $$ = $1; }
             ;
 
-Compd_Stmt  : '{' '}' { $$ = new StmtBlock(new List<VarDecl*>(), new List<Stmt*>()); }
+Compd_Stmt  : '{' '}' { $$ = NULL; }
             | '{' Stmt_List '}' { $$ = new StmtBlock($2.decls, $2.stmts); }
             ;
 
@@ -416,7 +416,7 @@ Ext_Decl  : Fn_Def                { $$ = $1; }
           | Decl                  { $$ = $1; }
           ;
 
-Fn_Def : Fn_Proto Compd_Stmt { ($$ = $1)->SetFunctionBody($2); }
+Fn_Def : Fn_Proto Compd_Stmt { $$ = $1; if ($2) $$->SetFunctionBody($2); }
 
 
 %%
