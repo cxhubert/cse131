@@ -71,6 +71,11 @@ void yyerror(const char *msg); // standard error-handling routine
     Expr *test;
     Expr *step;
   };
+
+  struct SwitchBody {
+    List<Case*> *cases;
+    Default *def;
+  };
 }
 
 %union {
@@ -126,12 +131,15 @@ void yyerror(const char *msg); // standard error-handling routine
 	SwitchStmtError *switchStmtError;
 	Type *type;
 	ArrayType *arrayType;
+  void *none;
+  List<Case*> *caseList;
   struct FnHdr fnHdr;
   struct FnHdrWithParams fnHdrWithParams;
   struct FnCallHdrWithParams fnCallHdrWithParams;
   struct StmtList stmtList;
   struct SelectRest selectRest;
   struct ForRest forRest;
+  struct SwitchBody switchBody;
 }
 
 
@@ -187,7 +195,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <opt> Assn_Oper
 %type <expr> Expr
 %type <decl> Decl
-%type <varDecl> VarDecl
+%type <varDecl> Var_Decl
 %type <fnDecl> Fn_Proto
 %type <fnDecl> Fn_Declr
 %type <fnHdr> Fn_Hdr
@@ -205,7 +213,13 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <selectRest> Select_Rest_Stmt
 %type <expr> Cond
 %type <switchStmt> Switch_Stmt
-%type <stmt> Case_Label
+%type <intConst> Case_Label
+%type <none> Default_Label
+%type <stmtList> Switch_Stmt_List
+%type <_case> Case_Stmt
+%type <_default> Default_Stmt
+%type <caseList> Case_Stmt_List
+%type <switchBody> Switch_Stmt_Body
 %type <loopStmt> Iter_Stmt
 %type <expr> For_Init_Stmt
 %type <forRest> For_Rest_Stmt
@@ -302,10 +316,10 @@ Expr : Assn_Expr { $$ = $1; }
      ;
 
 Decl : Fn_Proto ';' { $$ = $1; }
-     | VarDecl { $$ = $1; }
+     | Var_Decl { $$ = $1; }
      ;
 
-VarDecl : Single_Decl ';' { $$ = $1; }
+Var_Decl : Single_Decl ';' { $$ = $1; }
         ;
 
 Fn_Proto : Fn_Declr ')' { $$ = $1; }
@@ -353,20 +367,19 @@ Stmt        : Compd_Stmt { $$ = $1; }
 Simple_Stmt : Expr_Stmt { $$ = $1; }
             | Select_Stmt { $$ = $1; }
             | Switch_Stmt { $$ = $1; }
-            | Case_Label { $$ = $1; }
             | Iter_Stmt { $$ = $1; }
             ;
 
-Compd_Stmt  : '{' '}' { $$ = NULL; }
+Compd_Stmt  : '{' '}' { $$ = new StmtBlock(new List<VarDecl*>(), new List<Stmt*>()); }
             | '{' Stmt_List '}' { $$ = new StmtBlock($2.decls, $2.stmts); }
             ;
 
 Stmt_List   : Stmt { $$.decls = new List<VarDecl*>();
                     ($$.stmts = new List<Stmt*>())->Append($1); }
-            | VarDecl { $$.stmts = new List<Stmt*>();
+            | Var_Decl { $$.stmts = new List<Stmt*>();
                     ($$.decls = new List<VarDecl*>())->Append($1); }
             | Stmt_List Stmt { $$ = $1; $$.stmts->Append($2); }
-            | Stmt_List VarDecl { $$ = $1; $$.decls->Append($2); }
+            | Stmt_List Var_Decl { $$ = $1; $$.decls->Append($2); }
             ;
 
 Expr_Stmt   : ';' { $$ = new EmptyExpr(); }
@@ -387,13 +400,33 @@ Cond    : Expr { $$ = $1; }
                     $$ = new AssignExpr(rhs, op, $4); }
         ;
 
-Switch_Stmt : T_Switch '(' Expr ')' '{' Stmt_List '}' {}
-            | T_Switch '(' Expr ')' '{''}' {}
+Switch_Stmt : T_Switch '(' Expr ')' '{' Switch_Stmt_Body '}' { $$ = new SwitchStmt($3, $6.cases, $6.def); }
             ;
 
-Case_Label  : T_Case Expr ':' {}
-            | T_Default ':' {}
+Case_Label  : T_Case T_IntConstant ':' { $$ = new IntConstant(@2, $2); }
             ;
+
+Default_Label : T_Default ':' {}
+              ;
+
+Switch_Stmt_List : Stmt_List { $$ = $1; }
+                 ;
+
+Case_Stmt : Case_Label Switch_Stmt_List { $$ = new Case($1, $2.stmts); }
+          | Case_Label '{' Switch_Stmt_List '}' { $$ = new Case($1, $3.stmts); }
+          ;
+
+Default_Stmt : Default_Label Switch_Stmt_List { $$ = new Default($2.stmts); }
+             | Default_Label '{' Switch_Stmt_List '}' { $$ = new Default($3.stmts); }
+             ;
+
+Case_Stmt_List : Case_Stmt { ($$ = new List<Case*>())->Append($1); }
+               | Case_Stmt_List Case_Stmt { ($$ = $1)->Append($2); }
+               ;
+
+Switch_Stmt_Body : Case_Stmt_List { $$.cases = $1; $$.def = NULL; }
+                 | Case_Stmt_List Default_Stmt { $$.cases = $1; $$.def = $2; }
+                 ;  
 
 Iter_Stmt   : T_While '(' Cond ')' Stmt { $$ = new WhileStmt($3, $5); }
             | T_For '(' For_Init_Stmt For_Rest_Stmt ')' Stmt { 
@@ -416,7 +449,7 @@ Ext_Decl  : Fn_Def                { $$ = $1; }
           | Decl                  { $$ = $1; }
           ;
 
-Fn_Def : Fn_Proto Compd_Stmt { $$ = $1; if ($2) $$->SetFunctionBody($2); }
+Fn_Def : Fn_Proto Compd_Stmt { ($$ = $1)->SetFunctionBody($2); }
 
 
 %%

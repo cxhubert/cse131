@@ -1,13 +1,24 @@
-uniform int x;
+int x;
 
 void main(int argc) {
   for (i = 0; i < false; ++i) {
     if (true) {
-      in vec3 v;
-      v = vec3(1, 2, 3);
+      vec3 v;
+      v = 8;
       v++;
+      v.field = false;
       if (true && false || 0 && foo) {
-        print(666);
+
+        switch(fuck) {
+          case 1: tits = true;
+                  x = 5;
+          case 2: {
+                    if (x < 5) x++;
+                    while (foo) { int y; }
+           }
+           default: a.b = c;
+         }
+
       }
     }
   }

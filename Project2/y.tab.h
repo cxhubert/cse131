@@ -67,10 +67,15 @@
     Expr *step;
   };
 
+  struct SwitchBody {
+    List<Case*> *cases;
+    Default *def;
+  };
+
 
 
 /* Line 1676 of yacc.c  */
-#line 74 "y.tab.h"
+#line 79 "y.tab.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -172,7 +177,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 76 "parser.y"
+#line 81 "parser.y"
 
   int integerConstant;
   bool boolConstant;
@@ -226,17 +231,20 @@ typedef union YYSTYPE
 	SwitchStmtError *switchStmtError;
 	Type *type;
 	ArrayType *arrayType;
+  void *none;
+  List<Case*> *caseList;
   struct FnHdr fnHdr;
   struct FnHdrWithParams fnHdrWithParams;
   struct FnCallHdrWithParams fnCallHdrWithParams;
   struct StmtList stmtList;
   struct SelectRest selectRest;
   struct ForRest forRest;
+  struct SwitchBody switchBody;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 240 "y.tab.h"
+#line 248 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
