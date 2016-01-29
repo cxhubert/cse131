@@ -26,82 +26,97 @@
   4               VarExpr: 
   4                  Identifier: i
                (body) StmtBlock: 
+  5               VarDecl: 
+                     Type: int
+  5                  Identifier: x
+  6               VarDecl: 
+                     Type: vec2
+  6                  Identifier: v
+  5               AssignExpr: 
+  5                  VarExpr: 
+  5                     Identifier: x
+  5                  Operator: =
+  5                  FloatConstant: 67.5
+  6               AssignExpr: 
+  6                  VarExpr: 
+  6                     Identifier: v
+  6                  Operator: =
+  6                  IntConstant: 2
                   IfStmt: 
-  5                  (test) BoolConstant: true
+  7                  (test) BoolConstant: true
                      (then) StmtBlock: 
-  6                     VarDecl: 
+  8                     VarDecl: 
                            Type: vec3
-  6                        Identifier: v
-  7                     AssignExpr: 
-  7                        VarExpr: 
-  7                           Identifier: v
-  7                        Operator: =
-  7                        IntConstant: 8
-  8                     PostfixExpr: 
-  8                        VarExpr: 
-  8                           Identifier: v
-  8                        Operator: ++
+  8                        Identifier: v
   9                     AssignExpr: 
-  9                        FieldAccess: 
-  9                           VarExpr: 
-  9                              Identifier: v
-  9                           Identifier: field
+  9                        VarExpr: 
+  9                           Identifier: v
   9                        Operator: =
-  9                        BoolConstant: false
+  9                        IntConstant: 8
+ 10                     PostfixExpr: 
+ 10                        VarExpr: 
+ 10                           Identifier: v
+ 10                        Operator: ++
+ 11                     AssignExpr: 
+ 11                        FieldAccess: 
+ 11                           VarExpr: 
+ 11                              Identifier: v
+ 11                           Identifier: field
+ 11                        Operator: =
+ 11                        BoolConstant: false
                         IfStmt: 
- 10                        (test) LogicalExpr: 
- 10                           LogicalExpr: 
- 10                              BoolConstant: true
- 10                              Operator: &&
- 10                              BoolConstant: false
- 10                           Operator: ||
- 10                           LogicalExpr: 
- 10                              IntConstant: 0
- 10                              Operator: &&
- 10                              VarExpr: 
- 10                                 Identifier: foo
+ 12                        (test) LogicalExpr: 
+ 12                           LogicalExpr: 
+ 12                              BoolConstant: true
+ 12                              Operator: &&
+ 12                              BoolConstant: false
+ 12                           Operator: ||
+ 12                           LogicalExpr: 
+ 12                              IntConstant: 0
+ 12                              Operator: &&
+ 12                              VarExpr: 
+ 12                                 Identifier: foo
                            (then) StmtBlock: 
                               SwitchStmt: 
- 12                              VarExpr: 
- 12                                 Identifier: fuck
+ 14                              VarExpr: 
+ 14                                 Identifier: fuck
                                  Case: 
- 13                                 IntConstant: 1
- 13                                 AssignExpr: 
- 13                                    VarExpr: 
- 13                                       Identifier: tits
- 13                                    Operator: =
- 13                                    BoolConstant: true
- 14                                 AssignExpr: 
- 14                                    VarExpr: 
- 14                                       Identifier: x
- 14                                    Operator: =
- 14                                    IntConstant: 5
+ 15                                 IntConstant: 1
+ 15                                 AssignExpr: 
+ 15                                    VarExpr: 
+ 15                                       Identifier: tits
+ 15                                    Operator: =
+ 15                                    BoolConstant: true
+ 16                                 AssignExpr: 
+ 16                                    VarExpr: 
+ 16                                       Identifier: x
+ 16                                    Operator: =
+ 16                                    IntConstant: 5
                                  Case: 
- 15                                 IntConstant: 2
-                                    StmtBlock: 
-                                       IfStmt: 
- 16                                       (test) RelationalExpr: 
- 16                                          VarExpr: 
- 16                                             Identifier: x
- 16                                          Operator: <
- 16                                          IntConstant: 5
- 16                                       (then) PostfixExpr: 
- 16                                          VarExpr: 
- 16                                             Identifier: x
- 16                                          Operator: ++
-                                       WhileStmt: 
- 17                                       (test) VarExpr: 
- 17                                          Identifier: foo
-                                          (body) StmtBlock: 
- 17                                          VarDecl: 
-                                                Type: int
- 17                                             Identifier: y
+ 17                                 IntConstant: 2
+                                    IfStmt: 
+ 18                                    (test) RelationalExpr: 
+ 18                                       VarExpr: 
+ 18                                          Identifier: x
+ 18                                       Operator: <
+ 18                                       IntConstant: 5
+ 18                                    (then) PostfixExpr: 
+ 18                                       VarExpr: 
+ 18                                          Identifier: x
+ 18                                       Operator: ++
+                                    WhileStmt: 
+ 19                                    (test) VarExpr: 
+ 19                                       Identifier: foo
+                                       (body) StmtBlock: 
+ 19                                       VarDecl: 
+                                             Type: int
+ 19                                          Identifier: y
                                  Default: 
- 19                                 AssignExpr: 
- 19                                    FieldAccess: 
- 19                                       VarExpr: 
- 19                                          Identifier: a
- 19                                       Identifier: b
- 19                                    Operator: =
- 19                                    VarExpr: 
- 19                                       Identifier: c
+ 21                                 AssignExpr: 
+ 21                                    FieldAccess: 
+ 21                                       VarExpr: 
+ 21                                          Identifier: a
+ 21                                       Identifier: b
+ 21                                    Operator: =
+ 21                                    VarExpr: 
+ 21                                       Identifier: c

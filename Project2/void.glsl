@@ -2,6 +2,8 @@ int x;
 
 void main(int argc) {
   for (i = 0; i < false; ++i) {
+    int x = 67.5;
+    vec2 v = 2;
     if (true) {
       vec3 v;
       v = 8;

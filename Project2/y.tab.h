@@ -72,10 +72,15 @@
     Default *def;
   };
 
+  struct DeclInit {
+    VarDecl *decl;
+    AssignExpr *assn;
+  };
+
 
 
 /* Line 1676 of yacc.c  */
-#line 79 "y.tab.h"
+#line 84 "y.tab.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -177,7 +182,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 81 "parser.y"
+#line 86 "parser.y"
 
   int integerConstant;
   bool boolConstant;
@@ -240,11 +245,12 @@ typedef union YYSTYPE
   struct SelectRest selectRest;
   struct ForRest forRest;
   struct SwitchBody switchBody;
+  struct DeclInit declInit;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 248 "y.tab.h"
+#line 254 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

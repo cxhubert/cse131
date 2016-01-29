@@ -76,6 +76,11 @@ void yyerror(const char *msg); // standard error-handling routine
     List<Case*> *cases;
     Default *def;
   };
+
+  struct DeclInit {
+    VarDecl *decl;
+    AssignExpr *assn;
+  };
 }
 
 %union {
@@ -140,6 +145,7 @@ void yyerror(const char *msg); // standard error-handling routine
   struct SelectRest selectRest;
   struct ForRest forRest;
   struct SwitchBody switchBody;
+  struct DeclInit declInit;
 }
 
 
@@ -196,6 +202,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <expr> Expr
 %type <decl> Decl
 %type <varDecl> Var_Decl
+%type <declInit> Var_Decl_Init
 %type <fnDecl> Fn_Proto
 %type <fnDecl> Fn_Declr
 %type <fnHdr> Fn_Hdr
@@ -203,6 +210,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <varDecl> Param_Declr
 %type <varDecl> Param_Decl
 %type <varDecl> Single_Decl
+%type <declInit> Single_Decl_Init
 %type <type> Type_Spec
 %type <stmt> Stmt
 %type <stmt> Simple_Stmt
@@ -227,6 +235,9 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <decl> Ext_Decl
 %type <fnDecl> Fn_Def
 %type <program> Program
+
+%nonassoc "then"
+%nonassoc T_Else
 
 %%
 /* Rules
@@ -320,7 +331,10 @@ Decl : Fn_Proto ';' { $$ = $1; }
      ;
 
 Var_Decl : Single_Decl ';' { $$ = $1; }
-        ;
+         ;
+
+Var_Decl_Init : Single_Decl_Init ';' { $$ = $1; }
+              ;
 
 Fn_Proto : Fn_Declr ')' { $$ = $1; }
          ;
@@ -347,6 +361,12 @@ Param_Decl : Param_Declr { $$ = $1; }
 
 Single_Decl : Type_Spec T_Identifier { $$ = new VarDecl(new Identifier(@2, $2), $1); }
             ;
+
+Single_Decl_Init : Type_Spec T_Identifier '=' Assn_Expr { 
+      $$.decl = new VarDecl(new Identifier(@2, $2), $1);
+      $$.assn = new AssignExpr(new VarExpr(@2, new Identifier(@2, $2)), new Operator(@3, "="), $4);
+}
+                 ;
 
 Type_Spec : T_Void { $$ = Type::voidType; }
           | T_Float{ $$ = Type::floatType; }
@@ -377,9 +397,13 @@ Compd_Stmt  : '{' '}' { $$ = new StmtBlock(new List<VarDecl*>(), new List<Stmt*>
 Stmt_List   : Stmt { $$.decls = new List<VarDecl*>();
                     ($$.stmts = new List<Stmt*>())->Append($1); }
             | Var_Decl { $$.stmts = new List<Stmt*>();
-                    ($$.decls = new List<VarDecl*>())->Append($1); }
+                        ($$.decls = new List<VarDecl*>())->Append($1); }
+            | Var_Decl_Init { ($$.stmts = new List<Stmt*>())->Append($1.assn);
+                              ($$.decls = new List<VarDecl*>())->Append($1.decl); } 
             | Stmt_List Stmt { $$ = $1; $$.stmts->Append($2); }
             | Stmt_List Var_Decl { $$ = $1; $$.decls->Append($2); }
+            | Stmt_List Var_Decl_Init { $$ = $1; $$.stmts->Append($2.assn);
+                                        $$.decls->Append($2.decl); }
             ;
 
 Expr_Stmt   : ';' { $$ = new EmptyExpr(); }
@@ -390,7 +414,7 @@ Select_Stmt : T_If '(' Expr ')' Select_Rest_Stmt { $$ = new IfStmt($3, $5.body, 
             ;
 
 Select_Rest_Stmt : Stmt T_Else Stmt { $$.body = $1; $$.elseBody = $3; }
-                 | Stmt { $$.body = $1; $$.elseBody = NULL; }
+                 | Stmt { $$.body = $1; $$.elseBody = NULL; } %prec "then"
                  ;
 
 Cond    : Expr { $$ = $1; }
@@ -409,7 +433,10 @@ Case_Label  : T_Case T_IntConstant ':' { $$ = new IntConstant(@2, $2); }
 Default_Label : T_Default ':' {}
               ;
 
-Switch_Stmt_List : Stmt_List { $$ = $1; }
+Switch_Stmt_List : Simple_Stmt { ($$.stmts = new List<Stmt*>())->Append($1); $$.decls = new List<VarDecl*>(); }
+                 | Var_Decl { ($$.decls = new List<VarDecl*>())->Append($1); $$.stmts = new List<Stmt*>(); }
+                 | Switch_Stmt_List Simple_Stmt { $$.stmts->Append($2); }
+                 | Switch_Stmt_List Var_Decl { $$.decls->Append($2); }
                  ;
 
 Case_Stmt : Case_Label Switch_Stmt_List { $$ = new Case($1, $2.stmts); }
