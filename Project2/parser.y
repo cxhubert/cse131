@@ -186,6 +186,12 @@ void yyerror(const char *msg); // standard error-handling routine
  * pp2: You'll need to add many of these of your own.
  */
 
+%type <call> Fn_Call
+%type <ident> Fn_Call_Hdr_No_Param
+%type <fnCallHdrWithParams> Fn_Call_Hdr_With_Param
+%type <ident> Fn_Call_Hdr
+%type <ident> Fn_Ident
+
 %type <ident> Var_Ident
 %type <expr> Pri_Expr
 %type <expr> Post_Expr
@@ -231,6 +237,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <loopStmt> Iter_Stmt
 %type <expr> For_Init_Stmt
 %type <forRest> For_Rest_Stmt
+%type <stmt> Jump_Stmt
 %type <declList> Trans_Unit
 %type <decl> Ext_Decl
 %type <fnDecl> Fn_Def
@@ -267,10 +274,31 @@ Pri_Expr  : Var_Ident { $$ = new VarExpr(@1, $1); }
           ;
 
 Post_Expr : Pri_Expr { $$ = $1; }
+          | Fn_Call { $$ = $1; }
           | Post_Expr '.' T_FieldSelection { $$ = new FieldAccess($1, new Identifier(@3, $3)); }
           | Post_Expr T_Inc { $$ = new PostfixExpr($1, new Operator(@2, "++")); }
           | Post_Expr T_Dec { $$ = new PostfixExpr($1, new Operator(@2, "--")); }
           ;
+
+Fn_Call  : Fn_Call_Hdr_No_Param ')' { $$ = new Call(@1, NULL, $1, new List<Expr*>()); }
+         | Fn_Call_Hdr_With_Param ')' { $$ = new Call(@1, NULL, $1.name, $1.params); }
+         ;
+
+Fn_Call_Hdr_With_Param : Fn_Call_Hdr Assn_Expr { ($$.params = new List<Expr*>())->Append($2); 
+                                                  $$.name = $1; }
+                       | Fn_Call_Hdr_With_Param ',' Assn_Expr { $$ = $1; $$.params->Append($3); }
+                       ;
+
+Fn_Call_Hdr_No_Param  : Fn_Call_Hdr T_Void { $$ = $1; }
+                      | Fn_Call_Hdr { $$ = $1; }
+                      ;
+
+Fn_Call_Hdr : Fn_Ident '(' { $$ = $1; }
+            ;
+
+Fn_Ident : Type_Spec { $$ = new Identifier(@1, $1->getName()); }
+         | Var_Ident { $$ = $1; }
+         ;
 
 Un_Expr : Post_Expr { $$ = $1; }
         | T_Inc Un_Expr { $$ = new ArithmeticExpr(new Operator(@1, "++"), $2); }
@@ -388,6 +416,7 @@ Simple_Stmt : Expr_Stmt { $$ = $1; }
             | Select_Stmt { $$ = $1; }
             | Switch_Stmt { $$ = $1; }
             | Iter_Stmt { $$ = $1; }
+            | Jump_Stmt { $$ = $1; }
             ;
 
 Compd_Stmt  : '{' '}' { $$ = new StmtBlock(new List<VarDecl*>(), new List<Stmt*>()); }
@@ -467,6 +496,10 @@ For_Rest_Stmt   : Cond ';' { $$.test = $1; $$.step = NULL; }
                 | Cond ';' Expr { $$.test = $1; $$.step = $3; }
                 ;
 
+Jump_Stmt : T_Break ';' { $$ = new BreakStmt(@1); }
+          | T_Return ';' { $$ = new ReturnStmt(@1, new EmptyExpr()); }
+          | T_Return Expr ';' { $$ = new ReturnStmt(@1, $2); }
+          ;
 
 Trans_Unit : Trans_Unit Ext_Decl    { ($$ = $1)->Append($2); }
            | Ext_Decl               { ($$ = new List<Decl*>)->Append($1); }

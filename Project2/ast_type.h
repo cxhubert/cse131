@@ -28,6 +28,7 @@ class Type : public Node
 
     const char *GetPrintNameForNode() { return "Type"; }
     void PrintChildren(int indentLevel);
+    char *getName() { return typeName; }
 };
 
 class NamedType : public Type
