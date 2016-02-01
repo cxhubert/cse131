@@ -1,6 +1,287 @@
 
    Program: 
-  3   FnDecl: 
-         (return type) Type: void
-  3      Identifier: main
+  1   VarDecl: 
+         Type: float
+  1      Identifier: buf
+  3   VarDecl: 
+         Type: int
+  3      Identifier: glob
+  4   VarDecl: 
+         Type: int
+  4      Identifier: x
+  6   FnDecl: 
+         (return type) Type: int
+  6      Identifier: IndexOf
+  6      (formals) VarDecl: 
+            Type: float
+  6         Identifier: key
          (body) StmtBlock: 
+  9         VarDecl: 
+               Type: int
+  9            Identifier: i
+  8         AssignExpr: 
+  8            VarExpr: 
+  8               Identifier: buf
+  8            Operator: =
+  8            IntConstant: 10
+  9         AssignExpr: 
+  9            VarExpr: 
+  9               Identifier: i
+  9            Operator: =
+  9            IntConstant: 6
+            ForStmt: 
+ 10            (init) AssignExpr: 
+ 10               VarExpr: 
+ 10                  Identifier: i
+ 10               Operator: =
+ 10               IntConstant: 0
+ 10            (test) RelationalExpr: 
+ 10               VarExpr: 
+ 10                  Identifier: i
+ 10               Operator: <
+ 10               Call: 
+ 10                  Identifier: debugKeys_size
+ 10            (step) PostfixExpr: 
+ 10               VarExpr: 
+ 10                  Identifier: i
+ 10               Operator: ++
+               (body) IfStmt: 
+ 11               (test) Call: 
+ 11                  Identifier: strcmp
+ 11                  (actuals) VarExpr: 
+ 11                     Identifier: debugKeys
+ 11                  (actuals) VarExpr: 
+ 11                     Identifier: key
+ 12               (then) ReturnStmt: 
+ 12                  VarExpr: 
+ 12                     Identifier: i
+ 14         ReturnStmt: 
+ 14            ArithmeticExpr: 
+ 14               Operator: -
+ 14               IntConstant: 1
+ 17   FnDecl: 
+         (return type) Type: bool
+ 17      Identifier: IsDebugOn
+ 17      (formals) VarDecl: 
+            Type: bool
+ 17         Identifier: key
+         (body) StmtBlock: 
+ 18         ReturnStmt: 
+ 18            EqualityExpr: 
+ 18               Call: 
+ 18                  Identifier: IndexOf
+ 18                  (actuals) VarExpr: 
+ 18                     Identifier: key
+ 18               Operator: !=
+ 18               ArithmeticExpr: 
+ 18                  Operator: -
+ 18                  IntConstant: 1
+ 21   FnDecl: 
+         (return type) Type: void
+ 21      Identifier: SetDebugForKey
+ 21      (formals) VarDecl: 
+            Type: int
+ 21         Identifier: key
+ 21      (formals) VarDecl: 
+            Type: bool
+ 21         Identifier: value
+         (body) StmtBlock: 
+ 22         VarDecl: 
+               Type: int
+ 22            Identifier: k
+ 22         AssignExpr: 
+ 22            VarExpr: 
+ 22               Identifier: k
+ 22            Operator: =
+ 22            Call: 
+ 22               Identifier: IndexOf
+ 22               (actuals) VarExpr: 
+ 22                  Identifier: key
+            IfStmt: 
+ 23            (test) LogicalExpr: 
+ 23               VarExpr: 
+ 23                  Identifier: value
+ 23               Operator: &&
+ 23               EqualityExpr: 
+ 23                  VarExpr: 
+ 23                     Identifier: k
+ 23                  Operator: !=
+ 23                  ArithmeticExpr: 
+ 23                     Operator: -
+ 23                     IntConstant: 1
+ 24            (then) Call: 
+ 24               Identifier: debugKeys_erase
+ 24               (actuals) ArithmeticExpr: 
+ 24                  Call: 
+ 24                     Identifier: debugKeys_begin
+ 24                  Operator: +
+ 24                  VarExpr: 
+ 24                     Identifier: k
+               (else) IfStmt: 
+ 25               (test) LogicalExpr: 
+ 25                  VarExpr: 
+ 25                     Identifier: value
+ 25                  Operator: &&
+ 25                  EqualityExpr: 
+ 25                     VarExpr: 
+ 25                        Identifier: k
+ 25                     Operator: ==
+ 25                     ArithmeticExpr: 
+ 25                        Operator: -
+ 25                        IntConstant: 1
+ 26               (then) Call: 
+ 26                  Identifier: debugKeys_push_back
+ 26                  (actuals) VarExpr: 
+ 26                     Identifier: key
+            SwitchStmt: 
+ 27            VarExpr: 
+ 27               Identifier: key
+               Case: 
+ 28               IntConstant: 1
+ 28               AssignExpr: 
+ 28                  VarExpr: 
+ 28                     Identifier: x
+ 28                  Operator: =
+ 28                  IntConstant: 0
+               Case: 
+ 29               IntConstant: 2
+ 29               AssignExpr: 
+ 29                  VarExpr: 
+ 29                     Identifier: y
+ 29                  Operator: =
+ 29                  IntConstant: 0
+ 29               PostfixExpr: 
+ 29                  VarExpr: 
+ 29                     Identifier: y
+ 29                  Operator: ++
+ 33   FnDecl: 
+         (return type) Type: void
+ 33      Identifier: PrintDebug
+ 33      (formals) VarDecl: 
+            Type: float
+ 33         Identifier: key
+ 33      (formals) VarDecl: 
+            Type: float
+ 33         Identifier: format
+         (body) StmtBlock: 
+ 34         VarDecl: 
+               Type: int
+ 34            Identifier: args
+ 35         VarDecl: 
+               Type: float
+ 35            Identifier: buf
+            IfStmt: 
+ 37            (test) Call: 
+ 37               Identifier: IsDebugOn
+ 37               (actuals) VarExpr: 
+ 37                  Identifier: key
+ 38            (then) ReturnStmt: 
+                  Empty: 
+ 40         Call: 
+ 40            Identifier: va_start
+ 40            (actuals) VarExpr: 
+ 40               Identifier: args
+ 40            (actuals) VarExpr: 
+ 40               Identifier: format
+ 41         Call: 
+ 41            Identifier: vsprintf
+ 41            (actuals) VarExpr: 
+ 41               Identifier: buf
+ 41            (actuals) VarExpr: 
+ 41               Identifier: format
+ 41            (actuals) VarExpr: 
+ 41               Identifier: args
+ 42         Call: 
+ 42            Identifier: va_end
+ 42            (actuals) VarExpr: 
+ 42               Identifier: args
+ 43         Call: 
+ 43            Identifier: printf
+ 46   FnDecl: 
+         (return type) Type: void
+ 46      Identifier: ParseCommandLine
+ 46      (formals) VarDecl: 
+            Type: int
+ 46         Identifier: argc
+ 46      (formals) VarDecl: 
+            Type: bool
+ 46         Identifier: argv
+         (body) StmtBlock: 
+ 58         VarDecl: 
+               Type: int
+ 58            Identifier: i
+            IfStmt: 
+ 47            (test) EqualityExpr: 
+ 47               VarExpr: 
+ 47                  Identifier: argc
+ 47               Operator: ==
+ 47               IntConstant: 1
+ 48            (then) ReturnStmt: 
+                  Empty: 
+            IfStmt: 
+ 50            (test) EqualityExpr: 
+ 50               Call: 
+ 50                  Identifier: strcmp
+ 50                  (actuals) VarExpr: 
+ 50                     Identifier: argv
+ 50                  (actuals) IntConstant: 2
+ 50               Operator: !=
+ 50               IntConstant: 0
+               (then) StmtBlock: 
+ 51               Call: 
+ 51                  Identifier: printf
+ 51                  (actuals) FloatConstant: 67.5
+                  ForStmt: 
+ 52                  (init) AssignExpr: 
+ 52                     VarExpr: 
+ 52                        Identifier: i
+ 52                     Operator: =
+ 52                     IntConstant: 1
+ 52                  (test) RelationalExpr: 
+ 52                     VarExpr: 
+ 52                        Identifier: i
+ 52                     Operator: <
+ 52                     VarExpr: 
+ 52                        Identifier: argc
+ 52                  (step) PostfixExpr: 
+ 52                     VarExpr: 
+ 52                        Identifier: i
+ 52                     Operator: ++
+ 52                  (body) Call: 
+ 52                     Identifier: printf
+ 52                     (actuals) BoolConstant: true
+ 53               Call: 
+ 53                  Identifier: printf
+ 53                  (actuals) BoolConstant: false
+ 54               Call: 
+ 54                  Identifier: printf
+ 54                  (actuals) IntConstant: 15
+ 55               Call: 
+ 55                  Identifier: exit
+ 55                  (actuals) IntConstant: 2
+ 58         AssignExpr: 
+ 58            VarExpr: 
+ 58               Identifier: i
+ 58            Operator: =
+ 58            IntConstant: 2
+            ForStmt: 
+ 59            (init) AssignExpr: 
+ 59               VarExpr: 
+ 59                  Identifier: i
+ 59               Operator: =
+ 59               IntConstant: 3
+ 59            (test) RelationalExpr: 
+ 59               VarExpr: 
+ 59                  Identifier: i
+ 59               Operator: <
+ 59               VarExpr: 
+ 59                  Identifier: argc
+ 59            (step) PostfixExpr: 
+ 59               VarExpr: 
+ 59                  Identifier: i
+ 59               Operator: ++
+ 60            (body) Call: 
+ 60               Identifier: SetDebugForKey
+ 60               (actuals) VarExpr: 
+ 60                  Identifier: argv
+ 60               (actuals) BoolConstant: true

@@ -1,6 +1,6 @@
 #! /bin/sh
 
-[ -x dcc ] || { echo "Error: dcc not executable"; exit 1; }
+[ -x glc ] || { echo "Error: dcc not executable"; exit 1; }
 
 LIST=
 if [ "$#" = "0" ]; then

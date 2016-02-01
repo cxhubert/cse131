@@ -464,8 +464,11 @@ Default_Label : T_Default ':' {}
 
 Switch_Stmt_List : Simple_Stmt { ($$.stmts = new List<Stmt*>())->Append($1); $$.decls = new List<VarDecl*>(); }
                  | Var_Decl { ($$.decls = new List<VarDecl*>())->Append($1); $$.stmts = new List<Stmt*>(); }
+                 | Var_Decl_Init { ($$.decls = new List<VarDecl*>())->Append($1.decl); 
+                                   ($$.stmts = new List<Stmt*>())->Append($1.assn); } 
                  | Switch_Stmt_List Simple_Stmt { $$.stmts->Append($2); }
                  | Switch_Stmt_List Var_Decl { $$.decls->Append($2); }
+                 | Switch_Stmt_List Var_Decl_Init { $$.decls->Append($2.decl); $$.stmts->Append($2.assn); }
                  ;
 
 Case_Stmt : Case_Label Switch_Stmt_List { $$ = new Case($1, $2.stmts); }

@@ -24,6 +24,10 @@ void SetDebugForKey(int key, bool value) {
     debugKeys_erase(debugKeys_begin() + k);
   else if (value && k == -1)
     debugKeys_push_back(key);
+  switch (key) {
+    case 1: int x = 0;
+    case 2: { int y; y = 0; y++; float z; }
+  }
 }
 
 void PrintDebug(float key, float format) {
