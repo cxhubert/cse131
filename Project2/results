@@ -1,0 +1,40 @@
+Executing test "samples/test0.glsl"
+
+Executing test "samples/test1.glsl"
+
+Executing test "samples/test2.glsl"
+
+Executing test "samples/loop.glsl"
+
+Executing test "samples/test4.glsl"
+
+Executing test "samples/arithmetic_expressions.glsl"
+
+Executing test "samples/relational_expression.glsl"
+
+Executing test "samples/simple_functions.glsl"
+
+Executing test "samples/switch_statements.glsl"
+
+Executing test "samples/vector_constructors.glsl"
+
+Executing test "samples/while_statements.glsl"
+
+Executing test "samples/assignment_expressions.glsl"
+
+Executing test "samples/equality_expression.glsl"
+
+Executing test "samples/field_selection.glsl"
+
+Executing test "samples/for_statement.glsl"
+
+Executing test "samples/if_statements.glsl"
+
+Executing test "samples/invalid_semantics.glsl"
+
+Executing test "samples/logical_expressions.glsl"
+
+Executing test "samples/operator_assignment_expressions.glsl"
+
+Executing test "samples/postfix_expressions.glsl"
+

@@ -324,7 +324,7 @@ Rel_Expr    : Add_Expr { $$ = $1; }
             | Rel_Expr '<' Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,"<"),$3); }
             | Rel_Expr '>' Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,">"),$3); }
             | Rel_Expr T_LessEqual Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,"<="),$3); }
-            | Rel_Expr T_GreaterEqual Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,">"),$3); }
+            | Rel_Expr T_GreaterEqual Add_Expr { $$ = new RelationalExpr($1,new Operator(@2,">="),$3); }
             ;
 
 Eq_Expr    : Rel_Expr    { $$ = $1; }
